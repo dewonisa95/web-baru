@@ -1,746 +1,832 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noise Guard System</title>
+    <style>
+        /* =====================================================
+           RESET
+        ===================================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    <title>Peringatan Kebisingan & Sound Level Meter</title>
+        html, body {
+            width: 100%;
+            min-height: 100%;
+            font-family: Arial, Helvetica, sans-serif;
+        }
 
-    <link rel="stylesheet" href="style.css">
+        body {
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.5s ease, color 0.5s ease;
+        }
+
+        /* =====================================================
+           MODE MENUNGGU
+        ===================================================== */
+        body.menunggu-mode {
+            background: radial-gradient(circle at center, #182235 0%, #0c1320 60%, #070c14 100%);
+            color: #d8e0ec;
+        }
+
+        /* =====================================================
+           MODE AMAN
+        ===================================================== */
+        body.aman-mode {
+            background: radial-gradient(circle at center, #123325 0%, #081c14 60%, #04110c 100%);
+            color: #e5fff2;
+        }
+
+        /* =====================================================
+           MODE BAHAYA
+        ===================================================== */
+        body.berisik-mode {
+            background: #930f08;
+            color: white;
+        }
+
+        /* =====================================================
+           DASHBOARD WRAPPER
+        ===================================================== */
+        .dashboard-wrapper {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+        }
+
+        /* =====================================================
+           KARTU UTAMA
+        ===================================================== */
+        .card {
+            width: min(1450px, 100%);
+            min-height: 700px;
+            border-radius: 28px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.5s ease, border 0.5s ease, box-shadow 0.5s ease;
+        }
+
+        /* =====================================================
+           CARD MENUNGGU
+        ===================================================== */
+        .menunggu-theme {
+            background: linear-gradient(145deg, #111a2a, #080e18);
+            border: 1px solid #263248;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+        }
+
+        /* =====================================================
+           CARD AMAN
+        ===================================================== */
+        .aman-theme {
+            background: linear-gradient(145deg, #102b21, #07150f);
+            border: 1px solid #1f4937;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+        }
+
+        /* =====================================================
+           CARD BAHAYA
+        ===================================================== */
+        .berisik-theme {
+            background: #aa130a;
+            border: 2px solid rgba(255,255,255,0.18);
+            box-shadow: 0 0 70px rgba(255, 40, 20, 0.35);
+        }
+
+        /* =====================================================
+           HEADER
+        ===================================================== */
+        .card-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 28px 38px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .brand-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            border-radius: 999px;
+            background: rgba(0,0,0,0.28);
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .status-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #8293ab;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        /* =====================================================
+           STATUS UTAMA
+        ===================================================== */
+        .status-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 30px 40px 60px;
+            position: relative;
+        }
+
+        /* =====================================================
+           ICON BIASA
+        ===================================================== */
+        .icon-wrapper {
+            width: 155px;
+            height: 155px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 75px;
+            margin-bottom: 45px;
+            border: 2px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.03);
+        }
+
+        /* =====================================================
+           STATUS TITLE
+        ===================================================== */
+        .status-title {
+            font-size: clamp(4rem, 8vw, 8rem);
+            line-height: 0.95;
+            font-weight: 900;
+            letter-spacing: 5px;
+            margin-bottom: 20px;
+        }
+
+        .status-subtitle {
+            font-size: clamp(1.1rem, 2vw, 1.6rem);
+            font-weight: 600;
+            opacity: 0.8;
+            max-width: 1000px;
+        }
+
+        /* =====================================================
+           PANEL BAWAH
+        ===================================================== */
+        .bottom-panel {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 35px;
+            padding: 30px 38px 38px;
+            border-top: 1px solid rgba(255,255,255,0.10);
+        }
+
+        .info-box {
+            min-height: 130px;
+            border-radius: 24px;
+            padding: 25px 35px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255,255,255,0.035);
+            border: 1px solid rgba(255,255,255,0.10);
+        }
+
+        .db-info-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .box-label {
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .db-subtext {
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.60);
+        }
+
+        .db-value-container {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+        .db-value {
+            font-size: clamp(3rem, 5vw, 5rem);
+            font-weight: 900;
+        }
+
+        .db-unit {
+            font-size: 1.4rem;
+            font-weight: 700;
+            opacity: 0.75;
+        }
+
+        /* =====================================================
+           BUZZER SWITCH
+        ===================================================== */
+        .switch {
+            position: relative;
+            width: 95px;
+            height: 52px;
+            display: inline-block;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            inset: 0;
+            cursor: pointer;
+            border-radius: 999px;
+            background: #172231;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: 0.3s;
+        }
+
+        .slider::before {
+            content: "";
+            position: absolute;
+            width: 38px;
+            height: 38px;
+            left: 6px;
+            top: 6px;
+            border-radius: 50%;
+            background: #8d99a8;
+            transition: 0.3s;
+        }
+
+        .switch input:checked + .slider {
+            background: #147a4c;
+        }
+
+        .switch input:checked + .slider::before {
+            transform: translateX(43px);
+            background: white;
+        }
+
+        .switch input:disabled + .slider {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        /* =====================================================
+           FOOTER
+        ===================================================== */
+        .footer-info {
+            margin-top: 16px;
+            font-size: 0.78rem;
+            letter-spacing: 2px;
+            opacity: 0.45;
+            text-align: center;
+        }
+
+        /* =====================================================
+           =====================================================
+           MODE BAHAYA
+           DESAIN KHUSUS SEPERTI CONTOH YANG DIKIRIM
+           =====================================================
+        ===================================================== */
+        .berisik-mode .dashboard-wrapper {
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .berisik-mode .card {
+            width: 100%;
+            min-height: 100vh;
+            border-radius: 0;
+            border: none;
+            background: linear-gradient(180deg, #a50e07 0%, #8e0a05 100%);
+            box-shadow: none;
+        }
+
+        .berisik-mode .card-header {
+            padding: 28px 38px;
+        }
+
+        .berisik-mode .brand-badge {
+            background: rgba(0,0,0,0.16);
+            color: white;
+        }
+
+        .berisik-mode .status-dot {
+            background: #ffffff !important;
+            box-shadow: 0 0 15px rgba(255,255,255,0.8);
+        }
+
+        .berisik-mode .status-container {
+            justify-content: center;
+            padding: 20px 30px 40px;
+        }
+
+        /* =====================================================
+           WARNING HEADER
+        ===================================================== */
+        .warning-message {
+            font-size: clamp(1.2rem, 2vw, 2rem);
+            font-weight: 500;
+            line-height: 1.5;
+            max-width: 1200px;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+        }
+
+        /* =====================================================
+           WARNING LOGO SEGITIGA
+        ===================================================== */
+        .warning-logo {
+            width: 165px;
+            height: 145px;
+            margin: 10px auto 15px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+            background: #ef2016;
+            border: 8px solid white;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.20));
+        }
+
+        .warning-logo::before {
+            content: "!";
+            position: absolute;
+            left: 50%;
+            top: 49%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 95px;
+            line-height: 1;
+            font-weight: 900;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        /* =====================================================
+           JUDUL PERINGATAN
+        ===================================================== */
+        .berisik-mode .status-title {
+            font-size: clamp(4.5rem, 10vw, 10rem);
+            font-weight: 900;
+            letter-spacing: 7px;
+            color: #ffffff;
+            margin: 5px 0 15px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.16);
+        }
+
+        .warning-reference {
+            font-size: clamp(1.1rem, 2vw, 1.7rem);
+            margin-top: 10px;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        .warning-limit {
+            font-size: clamp(1rem, 1.7vw, 1.5rem);
+            margin-top: 5px;
+            font-weight: 400;
+        }
+
+        /* =====================================================
+           PANEL SAAT BAHAYA
+        ===================================================== */
+        .berisik-mode .bottom-panel {
+            background: rgba(60,0,0,0.14);
+            border-top: 1px solid rgba(255,255,255,0.16);
+        }
+
+        .berisik-mode .info-box {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.16);
+        }
+
+        .berisik-mode .db-subtext {
+            color: rgba(255,255,255,0.75);
+        }
+
+        .berisik-mode .slider {
+            background: rgba(0,0,0,0.35);
+        }
+
+        .berisik-mode .footer-info {
+            color: white;
+            opacity: 0.65;
+        }
+
+        /* =====================================================
+           ANIMASI BAHAYA
+        ===================================================== */
+        @keyframes dangerPulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.88; }
+            100% { opacity: 1; }
+        }
+
+        .berisik-mode .card {
+            animation: dangerPulse 1.5s infinite;
+        }
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+        @media (max-width: 800px) {
+            .dashboard-wrapper {
+                padding: 12px;
+            }
+            .card {
+                min-height: calc(100vh - 24px);
+            }
+            .card-header {
+                padding: 20px;
+            }
+            .card-header > span:last-child {
+                display: none;
+            }
+            .status-container {
+                padding: 20px;
+            }
+            .icon-wrapper {
+                width: 115px;
+                height: 115px;
+                font-size: 58px;
+                margin-bottom: 30px;
+            }
+            .status-title {
+                font-size: 4rem;
+                letter-spacing: 3px;
+            }
+            .bottom-panel {
+                grid-template-columns: 1fr;
+                padding: 20px;
+                gap: 15px;
+            }
+            .info-box {
+                min-height: 105px;
+                padding: 20px;
+            }
+            .db-value {
+                font-size: 3rem;
+            }
+            .berisik-mode .card {
+                min-height: 100vh;
+            }
+            .warning-message {
+                font-size: 1rem;
+                max-width: 90%;
+            }
+            .warning-logo {
+                width: 125px;
+                height: 110px;
+            }
+            .warning-logo::before {
+                font-size: 70px;
+            }
+            .berisik-mode .status-title {
+                font-size: 4rem;
+                letter-spacing: 3px;
+            }
+            .warning-reference {
+                font-size: 1rem;
+                max-width: 90%;
+            }
+            .warning-limit {
+                font-size: 0.95rem;
+                max-width: 90%;
+            }
+        }
+    </style>
 </head>
-
 
 <body class="menunggu-mode" id="body">
 
     <!-- =====================================================
-         ORNAMEN BACKGROUND
-    ====================================================== -->
-
-    <div class="ambient-orb orb-1"></div>
-    <div class="ambient-orb orb-2"></div>
-
-
-    <!-- =====================================================
          DASHBOARD
     ====================================================== -->
-
     <div class="dashboard-wrapper">
-
-        <!-- =================================================
-             KARTU UTAMA
-        ================================================== -->
-
         <div class="card menunggu-theme" id="mainCard">
-
 
             <!-- =================================================
                  HEADER
             ================================================== -->
-
             <div class="card-header">
-
                 <div class="brand-badge">
-
-                    <div
-                        class="status-dot"
-                        id="statusDot"
-                    ></div>
-
-                    <span id="connectionBadge">
-                        Menunggu Sinyal...
-                    </span>
-
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="connectionBadge">OFFLINE</span>
                 </div>
-
-
-                <span
-                    style="
-                        font-size: 0.85rem;
-                        color: #64748b;
-                        font-weight: 600;
-                        letter-spacing: 1px;
-                    "
-                >
+                <span style="font-size: 0.85rem; color: #8fa0b9; font-weight: 600; letter-spacing: 1px;">
                     ESP32 SENSOR
                 </span>
-
             </div>
 
-
             <!-- =================================================
-                 STATUS UTAMA
+                 STATUS
             ================================================== -->
+            <div class="status-container" id="statusContainer">
+                
+                <!-- ICON BIASA -->
+                <div class="icon-wrapper" id="statusIcon">⏳</div>
 
-            <div
-                class="status-container"
-                id="statusContainer"
-            >
+                <h1 class="status-title" id="statusText">MENUNGGU</h1>
 
-                <div
-                    class="ripple-ring"
-                    id="rippleEffect"
-                ></div>
-
-
-                <div
-                    class="icon-wrapper"
-                    id="statusIcon"
-                >
-                    ⏳
-                </div>
-
-
-                <h1
-                    class="status-title"
-                    id="statusText"
-                >
-                    MENUNGGU
-                </h1>
-
-
-                <div
-                    class="status-subtitle"
-                    id="statusSub"
-                >
+                <div class="status-subtitle" id="statusSub">
                     Menunggu menghubungkan ESP32...
                 </div>
-
             </div>
-
 
             <!-- =================================================
-                 PANEL DATA
+                 PANEL
             ================================================== -->
-
             <div class="bottom-panel">
 
-
-                <!-- =================================================
-                     NILAI dB
-                ================================================== -->
-
+                <!-- dB -->
                 <div class="info-box">
-
                     <div class="db-info-group">
-
-                        <span class="box-label">
-                            🎙️ Intensitas Suara
-                        </span>
-
-                        <span class="db-subtext">
-                            Ambang Batas: 55 dB
-                        </span>
-
+                        <span class="box-label">🎙️ INTENSITAS SUARA</span>
+                        <span class="db-subtext">Ambang Batas: 55 dB</span>
                     </div>
-
-
                     <div class="db-value-container">
-
-                        <span
-                            class="db-value"
-                            id="dbValue"
-                        >
-                            0.0
-                        </span>
-
-                        <span class="db-unit">
-                            dB
-                        </span>
-
+                        <span class="db-value" id="dbValue">0.0</span>
+                        <span class="db-unit">dB</span>
                     </div>
-
                 </div>
 
-
-                <!-- =================================================
-                     BUZZER
-                ================================================== -->
-
+                <!-- BUZZER -->
                 <div class="info-box">
-
                     <div class="db-info-group">
-
-                        <span class="box-label">
-                            🔔 Alarm Buzzer
-                        </span>
-
-                        <span class="db-subtext">
-                            Aktifkan peringatan audio
-                        </span>
-
+                        <span class="box-label">🔔 ALARM BUZZER</span>
+                        <span class="db-subtext">Aktifkan peringatan audio</span>
                     </div>
-
-
                     <label class="switch">
-
-                        <input
-                            type="checkbox"
-                            id="buzzerToggle"
-                            onchange="toggleBuzzer(this.checked)"
-                            checked
-                        >
-
+                        <input type="checkbox" id="buzzerToggle" onchange="toggleBuzzer(this.checked)" checked>
                         <span class="slider"></span>
-
                     </label>
-
                 </div>
-
             </div>
-
         </div>
 
-
-        <!-- =================================================
-             FOOTER
-        ================================================== -->
-
+        <!-- FOOTER -->
         <div class="footer-info">
             NOISE GUARD SYSTEM &bull; REAL-TIME MONITORING
         </div>
-
     </div>
-
 
     <!-- =====================================================
          JAVASCRIPT
     ====================================================== -->
-
     <script>
-
         // =====================================================
         // KONFIGURASI
         // =====================================================
-
-        // Website mengecek data setiap 500 ms
         const POLLING_INTERVAL = 500;
-
-        // Data harus masuk terus selama 2 detik
-        // sebelum ESP32 dianggap TERHUBUNG
+        
+        // Harus menerima data selama 2 detik sebelum dianggap TERHUBUNG
         const CONNECT_DELAY = 2000;
-
 
         // =====================================================
         // STATUS KONEKSI
         // =====================================================
-
         let espOnlineSince = null;
         let espConnected = false;
-
 
         // =====================================================
         // ELEMENT
         // =====================================================
-
-        const mainCard =
-            document.getElementById("mainCard");
-
-        const statusIcon =
-            document.getElementById("statusIcon");
-
-        const statusText =
-            document.getElementById("statusText");
-
-        const statusSub =
-            document.getElementById("statusSub");
-
-        const statusDot =
-            document.getElementById("statusDot");
-
-        const connectionBadge =
-            document.getElementById("connectionBadge");
-
-        const dbValue =
-            document.getElementById("dbValue");
-
-        const buzzerToggle =
-            document.getElementById("buzzerToggle");
-
+        const body = document.getElementById("body");
+        const mainCard = document.getElementById("mainCard");
+        const statusIcon = document.getElementById("statusIcon");
+        const statusText = document.getElementById("statusText");
+        const statusSub = document.getElementById("statusSub");
+        const statusDot = document.getElementById("statusDot");
+        const connectionBadge = document.getElementById("connectionBadge");
+        const dbValue = document.getElementById("dbValue");
+        const buzzerToggle = document.getElementById("buzzerToggle");
+        const statusContainer = document.getElementById("statusContainer");
 
         // =====================================================
-        // MENUNGGU
+        // MODE MENUNGGU
         // =====================================================
-
         function showWaitingStatus() {
-
-            mainCard.className =
-                "card menunggu-theme";
-
-            document.body.className =
-                "menunggu-mode";
-
-
-            connectionBadge.innerText =
-                "OFFLINE";
-
-
-            statusDot.style.backgroundColor =
-                "var(--accent-wait)";
-
-
-            statusIcon.innerHTML =
-                "⏳";
-
-
-            statusText.innerHTML =
-                "MENUNGGU";
-
-
-            statusSub.innerText =
-                "Menunggu menghubungkan ESP32...";
-
-
-            dbValue.innerText =
-                "0.0";
-
-
-            buzzerToggle.checked =
-                false;
-
-
-            buzzerToggle.disabled =
-                true;
+            mainCard.className = "card menunggu-theme";
+            body.className = "menunggu-mode";
+            connectionBadge.innerText = "OFFLINE";
+            statusDot.style.backgroundColor = "#8190a6";
+            
+            statusIcon.className = "icon-wrapper";
+            statusIcon.innerHTML = "⏳";
+            statusText.innerHTML = "MENUNGGU";
+            statusSub.innerText = "Menunggu menghubungkan ESP32...";
+            
+            dbValue.innerText = "0.0";
+            buzzerToggle.checked = false;
+            buzzerToggle.disabled = true;
         }
 
-
         // =====================================================
-        // ESP32 OFFLINE
+        // MODE AMAN
         // =====================================================
-
-        function showESP32Offline() {
-
-            // Reset timer karena memang tidak ada data
-            espOnlineSince = null;
-
-            espConnected = false;
-
-            showWaitingStatus();
-        }
-
-
-        // =====================================================
-        // STATUS AMAN
-        // =====================================================
-
         function showSafeStatus(data) {
+            mainCard.className = "card aman-theme";
+            body.className = "aman-mode";
+            connectionBadge.innerText = "TERHUBUNG";
+            statusDot.style.backgroundColor = "#4ade80";
+            
+            statusIcon.className = "icon-wrapper";
+            statusIcon.innerHTML = "🛡️";
+            statusText.innerHTML = "AMAN";
+            statusSub.innerText = "Tingkat Suara Normal & Terkendali";
 
-            mainCard.className =
-                "card aman-theme";
-
-            document.body.className =
-                "aman-mode";
-
-
-            connectionBadge.innerText =
-                "TERHUBUNG";
-
-
-            statusDot.style.backgroundColor =
-                "var(--accent-green)";
-
-
-            statusIcon.innerHTML =
-                "🛡️";
-
-
-            statusText.innerHTML =
-                "AMAN";
-
-
-            statusSub.innerText =
-                "Tingkat Suara Normal & Terkendali";
-
-
-            const db =
-                Number(data.db);
-
-
+            const db = Number(data.db);
             if (Number.isFinite(db)) {
-
-                dbValue.innerText =
-                    db.toFixed(1);
-
+                dbValue.innerText = db.toFixed(1);
             } else {
-
-                dbValue.innerText =
-                    "0.0";
+                dbValue.innerText = "0.0";
             }
+
+            updateBuzzerState(data);
         }
 
-
         // =====================================================
-        // STATUS BAHAYA
+        // MODE BAHAYA
         // =====================================================
-
         function showDangerStatus(data) {
+            mainCard.className = "card berisik-theme";
+            body.className = "berisik-mode";
+            connectionBadge.innerText = "TERHUBUNG";
+            statusDot.style.backgroundColor = "#ffffff";
 
-            mainCard.className =
-                "card berisik-theme berisik-card";
+            // HILANGKAN ICON LAMA
+            statusIcon.outerHTML = `<div class="warning-logo" id="statusIcon"></div>`;
+            
+            // Ambil ulang element karena outerHTML menggantinya
+            const warningLogo = document.getElementById("statusIcon");
 
-            document.body.className =
-                "berisik-mode";
+            // PESAN PERINGATAN
+            const oldWarning = document.getElementById("warningMessage");
+            if (!oldWarning) {
+                const message = document.createElement("div");
+                message.id = "warningMessage";
+                message.className = "warning-message";
+                message.innerHTML = `SUARA ANDA MENCAPAI BATAS YANG TELAH DITENTUKAN!<br>MOHON TENANG DAN JANGAN MENGGANGGU PASIEN LAIN!`;
+                statusContainer.insertBefore(message, warningLogo);
+            }
 
+            // JUDUL
+            statusText.innerHTML = "PERINGATAN!";
 
-            connectionBadge.innerText =
-                "TERHUBUNG";
+            // SUBTITLE
+            statusSub.innerHTML = `
+                <div class="warning-reference">Berdasarkan KEP-48/MENLH/11/1996</div>
+                <div class="warning-limit">Tingkat kebisingan yang diizinkan untuk rumah sakit adalah 55 dB.</div>
+            `;
 
-
-            statusDot.style.backgroundColor =
-                "var(--accent-green)";
-
-
-            statusIcon.innerHTML =
-                "🚨";
-
-
-            statusText.innerHTML =
-                "BAHAYA!";
-
-
-            statusSub.innerText =
-                "LINGKUNGAN TERLALU BISING (>55 dB)";
-
-
-            const db =
-                Number(data.db);
-
-
+            // NILAI dB
+            const db = Number(data.db);
             if (Number.isFinite(db)) {
-
-                dbValue.innerText =
-                    db.toFixed(1);
-
+                dbValue.innerText = db.toFixed(1);
             } else {
-
-                dbValue.innerText =
-                    "0.0";
+                dbValue.innerText = "0.0";
             }
+
+            // BUZZER
+            updateBuzzerState(data);
         }
 
-
         // =====================================================
-        // UPDATE STATUS BUZZER
+        // UPDATE BUZZER
         // =====================================================
-
         function updateBuzzerState(data) {
+            if (!buzzerToggle) return;
+            
+            buzzerToggle.disabled = false;
 
-            if (!buzzerToggle) {
-                return;
-            }
-
-
-            buzzerToggle.disabled =
-                false;
-
-
-            if (
-                document.activeElement !==
-                buzzerToggle
-            ) {
-
-                if (
-                    data.buzzer !== undefined
-                ) {
-
-                    buzzerToggle.checked =
-                        Boolean(data.buzzer);
+            if (document.activeElement !== buzzerToggle) {
+                if (data.buzzer !== undefined) {
+                    buzzerToggle.checked = Boolean(data.buzzer);
                 }
             }
         }
 
-
         // =====================================================
-        // KONTROL BUZZER
+        // BUZZER COMMAND
         // =====================================================
-
         async function toggleBuzzer(isChecked) {
-
             try {
-
-                const response =
-                    await fetch(
-                        `/buzzer?state=${isChecked ? "on" : "off"}`
-                    );
-
-
+                const response = await fetch(`/buzzer?state=${isChecked ? "on" : "off"}`);
                 if (!response.ok) {
-
-                    throw new Error(
-                        `HTTP ${response.status}`
-                    );
+                    throw new Error(`HTTP ${response.status}`);
                 }
-
-
-                const result =
-                    await response.json();
-
-
-                console.log(
-                    "[BUZZER]",
-                    result
-                );
-
-            }
-
-            catch (error) {
-
-                console.error(
-                    "[BUZZER] Gagal mengubah status:",
-                    error
-                );
-
+                const result = await response.json();
+                console.log("[BUZZER]", result);
+            } catch (error) {
+                console.error("[BUZZER ERROR]", error);
             }
         }
-
 
         // =====================================================
         // AMBIL DATA ESP32
         // =====================================================
-
         async function fetchESP32Data() {
-
             try {
-
-                // -------------------------------------------------
-                // Request ke Worker
-                // -------------------------------------------------
-
-                const response =
-                    await fetch(
-                        "/api/sensor?t=" +
-                        Date.now(),
-                        {
-                            cache: "no-store"
-                        }
-                    );
-
-
-                // -------------------------------------------------
-                // HTTP ERROR
-                // -------------------------------------------------
+                const response = await fetch("/api/sensor?t=" + Date.now(), {
+                    cache: "no-store"
+                });
 
                 if (!response.ok) {
-
-                    throw new Error(
-                        `HTTP ${response.status}`
-                    );
+                    throw new Error(`HTTP ${response.status}`);
                 }
 
+                const data = await response.json();
+                console.log("[SENSOR]", data);
 
-                // -------------------------------------------------
-                // JSON
-                // -------------------------------------------------
-
-                const data =
-                    await response.json();
-
-
-                console.log(
-                    "[SENSOR]",
-                    data
-                );
-
-
-                // =================================================
                 // ESP32 OFFLINE
-                // =================================================
-
-                if (
-                    data.online !== true
-                ) {
-
-                    showESP32Offline();
-
-                    return;
-                }
-
-
-                // =================================================
-                // DATA ESP32 MULAI MASUK
-                // =================================================
-
-                // Hanya dijalankan sekali ketika
-                // pertama kali menerima data setelah offline.
-
-                if (
-                    espOnlineSince === null
-                ) {
-
-                    espOnlineSince =
-                        Date.now();
-
-                    espConnected =
-                        false;
-
-
-                    console.log(
-                        "[ESP32] Data mulai diterima"
-                    );
-
-
-                    console.log(
-                        "[ESP32] Menunggu 2 detik..."
-                    );
-
-
-                    // Tampilkan mode menunggu.
-                    // PENTING:
-                    // fungsi ini TIDAK mereset timer.
+                if (data.online !== true) {
                     showWaitingStatus();
-
-
                     return;
                 }
 
-
-                // =================================================
-                // HITUNG DURASI DATA
-                // =================================================
-
-                const connectedTime =
-                    Date.now() -
-                    espOnlineSince;
-
-
-                console.log(
-                    "[ESP32] Durasi:",
-                    connectedTime,
-                    "ms"
-                );
-
-
-                // =================================================
-                // BELUM 2 DETIK
-                // =================================================
-
-                if (
-                    connectedTime <
-                    CONNECT_DELAY
-                ) {
-
-                    espConnected =
-                        false;
-
-
+                // DATA MULAI MASUK
+                if (espOnlineSince === null) {
+                    espOnlineSince = Date.now();
+                    espConnected = false;
+                    console.log("[ESP32] Data mulai diterima");
                     showWaitingStatus();
-
-
                     return;
                 }
 
+                // HITUNG 2 DETIK
+                const connectedTime = Date.now() - espOnlineSince;
+                if (connectedTime < CONNECT_DELAY) {
+                    showWaitingStatus();
+                    return;
+                }
 
-                // =================================================
                 // TERHUBUNG
-                // =================================================
+                espConnected = true;
 
-                espConnected =
-                    true;
-
-
-                // =================================================
-                // STATUS AMAN / BAHAYA
-                // =================================================
-
-                if (
-                    data.warning === true
-                ) {
-
+                // BAHAYA / AMAN
+                if (data.warning === true) {
                     showDangerStatus(data);
-
                 } else {
-
                     showSafeStatus(data);
                 }
 
-
-                // =================================================
-                // BUZZER
-                // =================================================
-
-                updateBuzzerState(data);
-
-            }
-
-            catch (error) {
-
-                // =================================================
-                // SERVER ERROR
-                // =================================================
-
-                espOnlineSince =
-                    null;
-
-                espConnected =
-                    false;
-
-
-                mainCard.className =
-                    "card menunggu-theme";
-
-
-                document.body.className =
-                    "menunggu-mode";
-
-
-                connectionBadge.innerText =
-                    "SERVER OFFLINE";
-
-
-                statusDot.style.backgroundColor =
-                    "var(--accent-wait)";
-
-
-                statusIcon.innerHTML =
-                    "⚠️";
-
-
-                statusText.innerHTML =
-                    "KONEKSI TERPUTUS";
-
-
-                statusSub.innerText =
-                    "Tidak dapat menghubungi Cloudflare Worker...";
-
-
-                dbValue.innerText =
-                    "0.0";
-
-
-                buzzerToggle.checked =
-                    false;
-
-
-                buzzerToggle.disabled =
-                    true;
-
-
-                console.error(
-                    "[SERVER ERROR]",
-                    error
-                );
+            } catch (error) {
+                console.error("[SERVER ERROR]", error);
+                
+                espOnlineSince = null;
+                espConnected = false;
+                
+                mainCard.className = "card menunggu-theme";
+                body.className = "menunggu-mode";
+                
+                connectionBadge.innerText = "SERVER OFFLINE";
+                statusDot.style.backgroundColor = "#8190a6";
+                
+                statusIcon.className = "icon-wrapper";
+                statusIcon.innerHTML = "⚠️";
+                statusText.innerHTML = "KONEKSI TERPUTUS";
+                statusSub.innerText = "Tidak dapat menghubungi Cloudflare Worker...";
+                
+                dbValue.innerText = "0.0";
+                buzzerToggle.checked = false;
+                buzzerToggle.disabled = true;
             }
         }
 
-
         // =====================================================
-        // POLLING 500 ms
+        // POLLING
         // =====================================================
-
-        setInterval(
-            fetchESP32Data,
-            POLLING_INTERVAL
-        );
-
+        setInterval(fetchESP32Data, POLLING_INTERVAL);
 
         // =====================================================
         // REQUEST PERTAMA
         // =====================================================
-
         fetchESP32Data();
 
     </script>
-
 </body>
-
 </html>
