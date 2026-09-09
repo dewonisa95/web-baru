@@ -1,11 +1,9 @@
 name = "web-baru"
-
 main = "worker.js"
-
 compatibility_date = "2026-09-08"
 
 [assets]
-directory = "."
+directory = "./public"
 binding = "ASSETS"
 
 [durable_objects]
