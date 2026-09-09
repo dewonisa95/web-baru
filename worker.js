@@ -13,7 +13,6 @@ export class SensorState {
     // ========================================================
     // GET /api/sensor
     // Website mengambil data sensor terakhir
-    // TIDAK membutuhkan API key
     // ========================================================
     if (
       request.method === "GET" &&
@@ -25,7 +24,7 @@ export class SensorState {
       const buzzer =
         await this.ctx.storage.get("buzzerEnabled");
 
-      // Belum ada data dari ESP32
+      // Belum ada data sensor
       if (!data) {
         return jsonResponse({
           db: 0,
@@ -40,7 +39,7 @@ export class SensorState {
         });
       }
 
-      // Data sudah tersedia
+      // Data sensor tersedia
       return jsonResponse({
         ...data,
         buzzer:
@@ -53,8 +52,7 @@ export class SensorState {
 
     // ========================================================
     // POST /set-buzzer
-    // Digunakan secara internal oleh Worker
-    // untuk menyimpan status buzzer
+    // Internal Worker → Durable Object
     // ========================================================
     if (
       request.method === "POST" &&
@@ -78,12 +76,10 @@ export class SensorState {
         });
 
       } catch (error) {
-
         return jsonResponse(
           {
             success: false,
-            error:
-              "Data buzzer tidak valid"
+            error: "Data buzzer tidak valid"
           },
           400
         );
@@ -94,8 +90,6 @@ export class SensorState {
     // ========================================================
     // POST /api/sensor
     // ESP32 mengirim data sensor
-    //
-    // WAJIB menggunakan X-API-Key
     // ========================================================
     if (
       request.method === "POST" &&
@@ -111,16 +105,16 @@ export class SensorState {
 
       // ------------------------------------------------------
       // VALIDASI API KEY
-      // Secret harus dibuat di Cloudflare dengan nama:
       //
-      // DEVICE_API_KEY
+      // PENTING:
+      // Karena kita berada di dalam SensorState,
+      // gunakan this.env.DEVICE_API_KEY
       // ------------------------------------------------------
       if (
         !apiKey ||
-        !env.DEVICE_API_KEY ||
-        apiKey !== env.DEVICE_API_KEY
+        !this.env.DEVICE_API_KEY ||
+        apiKey !== this.env.DEVICE_API_KEY
       ) {
-
         return jsonResponse(
           {
             success: false,
@@ -132,10 +126,9 @@ export class SensorState {
 
 
       // ------------------------------------------------------
-      // PROSES JSON
+      // BACA JSON DARI ESP32
       // ------------------------------------------------------
       try {
-
         const body =
           await request.json();
 
@@ -147,7 +140,6 @@ export class SensorState {
           !body.device ||
           !Array.isArray(body.readings)
         ) {
-
           return jsonResponse(
             {
               success: false,
@@ -160,12 +152,11 @@ export class SensorState {
 
 
         // ----------------------------------------------------
-        // CEK READINGS
+        // VALIDASI ARRAY READINGS
         // ----------------------------------------------------
         if (
           body.readings.length === 0
         ) {
-
           return jsonResponse(
             {
               success: false,
@@ -178,7 +169,7 @@ export class SensorState {
 
 
         // ----------------------------------------------------
-        // AMBIL DATA TERAKHIR
+        // AMBIL READING TERAKHIR
         // ----------------------------------------------------
         const reading =
           body.readings[
@@ -187,8 +178,8 @@ export class SensorState {
 
 
         // ----------------------------------------------------
-        // AMBIL STATUS BUZZER YANG TERAKHIR
-        // DIKONTROL OLEH WEBSITE
+        // AMBIL STATUS BUZZER TERAKHIR
+        // DARI DURABLE OBJECT
         // ----------------------------------------------------
         const storedBuzzer =
           await this.ctx.storage.get(
@@ -197,7 +188,7 @@ export class SensorState {
 
 
         // ----------------------------------------------------
-        // SUSUN DATA SENSOR
+        // BENTUK DATA SENSOR
         // ----------------------------------------------------
         const sensorData = {
           db:
@@ -221,7 +212,7 @@ export class SensorState {
 
 
         // ----------------------------------------------------
-        // SIMPAN KE DURABLE OBJECT
+        // SIMPAN DATA SENSOR
         // ----------------------------------------------------
         await this.ctx.storage.put(
           "sensorData",
@@ -234,10 +225,8 @@ export class SensorState {
         // ----------------------------------------------------
         return jsonResponse({
           success: true,
-
           message:
             "Data sensor diterima",
-
           buzzer:
             sensorData.buzzer
         });
@@ -282,45 +271,38 @@ export default {
 
 
     // ========================================================
-    // GET /api/sensor
-    // POST /api/sensor
+    // API SENSOR
+    // GET dan POST
     // ========================================================
     if (
       url.pathname === "/api/sensor"
     ) {
 
-      // ------------------------------------------------------
-      // Pastikan Durable Object tersedia
-      // ------------------------------------------------------
       const id =
         env.SENSOR_STATE.idFromName(
           "esp-sound-01"
         );
 
-
       const stub =
         env.SENSOR_STATE.get(id);
-
 
       return stub.fetch(request);
     }
 
 
     // ========================================================
-    // /buzzer?state=on
-    // /buzzer?state=off
+    // API BUZZER
     // ========================================================
     if (
       url.pathname === "/buzzer"
     ) {
 
       // ------------------------------------------------------
-      // Hanya GET yang diperbolehkan
+      // Hanya GET
       // ------------------------------------------------------
       if (
         request.method !== "GET"
       ) {
-
         return jsonResponse(
           {
             success: false,
@@ -333,7 +315,7 @@ export default {
 
 
       // ------------------------------------------------------
-      // AMBIL PARAMETER STATE
+      // AMBIL STATE BUZZER
       // ------------------------------------------------------
       const state =
         url.searchParams.get(
@@ -341,14 +323,10 @@ export default {
         );
 
 
-      // ------------------------------------------------------
-      // VALIDASI STATE
-      // ------------------------------------------------------
       if (
         state !== "on" &&
         state !== "off"
       ) {
-
         return jsonResponse(
           {
             success: false,
@@ -361,13 +339,12 @@ export default {
 
 
       // ------------------------------------------------------
-      // AMBIL DURABLE OBJECT
+      // DURABLE OBJECT
       // ------------------------------------------------------
       const id =
         env.SENSOR_STATE.idFromName(
           "esp-sound-01"
         );
-
 
       const stub =
         env.SENSOR_STATE.get(id);
@@ -376,37 +353,30 @@ export default {
       // ------------------------------------------------------
       // SIMPAN STATUS BUZZER
       // ------------------------------------------------------
-      const response =
-        await stub.fetch(
-          new Request(
-            "https://internal/set-buzzer",
-            {
-              method: "POST",
+      return stub.fetch(
+        new Request(
+          "https://internal/set-buzzer",
+          {
+            method: "POST",
 
-              headers: {
-                "Content-Type":
-                  "application/json"
-              },
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
 
-              body:
-                JSON.stringify({
-                  buzzer:
-                    state === "on"
-                })
-            }
-          )
-        );
-
-
-      return response;
+            body:
+              JSON.stringify({
+                buzzer:
+                  state === "on"
+              })
+          }
+        )
+      );
     }
 
 
     // ========================================================
     // STATIC ASSETS
-    //
-    // index.html
-    // style.css
     // ========================================================
     return env.ASSETS.fetch(
       request
@@ -422,7 +392,6 @@ function jsonResponse(
   data,
   status = 200
 ) {
-
   return new Response(
     JSON.stringify(data),
     {
