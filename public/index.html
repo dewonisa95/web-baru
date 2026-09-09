@@ -6,7 +6,7 @@
     <title>Noise Guard System</title>
     <style>
         /* =====================================================
-           RESET
+           RESET & BASE
         ===================================================== */
         * {
             box-sizing: border-box;
@@ -17,41 +17,35 @@
         html, body {
             width: 100%;
             min-height: 100%;
-            font-family: Arial, Helvetica, sans-serif;
         }
 
         body {
+            font-family: Arial, Helvetica, sans-serif;
             min-height: 100vh;
             overflow-x: hidden;
             transition: background 0.5s ease, color 0.5s ease;
         }
 
         /* =====================================================
-           MODE MENUNGGU
+           THEMES (MENUNGGU, AMAN, BAHAYA)
         ===================================================== */
         body.menunggu-mode {
-            background: radial-gradient(circle at center, #182235 0%, #0c1320 60%, #070c14 100%);
-            color: #d8e0ec;
+            background: radial-gradient(circle at center, #1b2639 0%, #0d1523 55%, #070c14 100%);
+            color: #dce5f2;
         }
 
-        /* =====================================================
-           MODE AMAN
-        ===================================================== */
         body.aman-mode {
-            background: radial-gradient(circle at center, #123325 0%, #081c14 60%, #04110c 100%);
-            color: #e5fff2;
+            background: radial-gradient(circle at center, #142b49 0%, #0a1a31 55%, #050d18 100%);
+            color: #e8f3ff;
         }
 
-        /* =====================================================
-           MODE BAHAYA
-        ===================================================== */
         body.berisik-mode {
-            background: #930f08;
-            color: white;
+            background: #970f08;
+            color: #ffffff;
         }
 
         /* =====================================================
-           DASHBOARD WRAPPER
+           LAYOUT WRAPPER & CARD
         ===================================================== */
         .dashboard-wrapper {
             width: 100%;
@@ -63,9 +57,6 @@
             padding: 30px;
         }
 
-        /* =====================================================
-           KARTU UTAMA
-        ===================================================== */
         .card {
             width: min(1450px, 100%);
             min-height: 700px;
@@ -77,44 +68,34 @@
             transition: background 0.5s ease, border 0.5s ease, box-shadow 0.5s ease;
         }
 
-        /* =====================================================
-           CARD MENUNGGU
-        ===================================================== */
+        /* CARD THEMES */
         .menunggu-theme {
-            background: linear-gradient(145deg, #111a2a, #080e18);
-            border: 1px solid #263248;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+            background: linear-gradient(145deg, #111a2a, #080f1a);
+            border: 1px solid #29364b;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
         }
 
-        /* =====================================================
-           CARD AMAN
-        ===================================================== */
         .aman-theme {
-            background: linear-gradient(145deg, #102b21, #07150f);
-            border: 1px solid #1f4937;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+            background: linear-gradient(145deg, #132b4a, #08172b);
+            border: 1px solid #264b73;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
         }
 
-        /* =====================================================
-           CARD BAHAYA
-        ===================================================== */
         .berisik-theme {
             background: #aa130a;
-            border: 2px solid rgba(255,255,255,0.18);
-            box-shadow: 0 0 70px rgba(255, 40, 20, 0.35);
+            border: 2px solid rgba(255,255,255,0.15);
+            box-shadow: 0 0 70px rgba(255, 30, 20, 0.30);
         }
 
-        /* =====================================================
-           HEADER
-        ===================================================== */
+        /* HEADER */
         .card-header {
             width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             padding: 28px 38px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             position: relative;
-            z-index: 5;
+            z-index: 20;
         }
 
         .brand-badge {
@@ -133,27 +114,21 @@
             width: 15px;
             height: 15px;
             border-radius: 50%;
-            background: #8293ab;
-            box-shadow: 0 0 10px currentColor;
+            background: #8190a6;
         }
 
-        /* =====================================================
-           STATUS UTAMA
-        ===================================================== */
+        /* STATUS AREA */
         .status-container {
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             text-align: center;
-            padding: 30px 40px 60px;
+            padding: 35px;
             position: relative;
         }
 
-        /* =====================================================
-           ICON BIASA
-        ===================================================== */
         .icon-wrapper {
             width: 155px;
             height: 155px;
@@ -162,32 +137,29 @@
             align-items: center;
             justify-content: center;
             font-size: 75px;
-            margin-bottom: 45px;
+            margin-bottom: 35px;
             border: 2px solid rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.03);
+            background: rgba(255,255,255,0.04);
         }
 
-        /* =====================================================
-           STATUS TITLE
-        ===================================================== */
         .status-title {
             font-size: clamp(4rem, 8vw, 8rem);
             line-height: 0.95;
             font-weight: 900;
             letter-spacing: 5px;
+            color: #ffffff;
             margin-bottom: 20px;
         }
 
         .status-subtitle {
             font-size: clamp(1.1rem, 2vw, 1.6rem);
             font-weight: 600;
-            opacity: 0.8;
-            max-width: 1000px;
+            opacity: 0.82;
+            max-width: 1050px;
+            line-height: 1.45;
         }
 
-        /* =====================================================
-           PANEL BAWAH
-        ===================================================== */
+        /* PANEL DATA */
         .bottom-panel {
             width: 100%;
             display: grid;
@@ -199,8 +171,8 @@
 
         .info-box {
             min-height: 130px;
-            border-radius: 24px;
             padding: 25px 35px;
+            border-radius: 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -242,9 +214,7 @@
             opacity: 0.75;
         }
 
-        /* =====================================================
-           BUZZER SWITCH
-        ===================================================== */
+        /* BUZZER */
         .switch {
             position: relative;
             width: 95px;
@@ -261,11 +231,10 @@
         .slider {
             position: absolute;
             inset: 0;
-            cursor: pointer;
             border-radius: 999px;
-            background: #172231;
+            cursor: pointer;
+            background: #182334;
             border: 1px solid rgba(255,255,255,0.08);
-            transition: 0.3s;
         }
 
         .slider::before {
@@ -281,12 +250,12 @@
         }
 
         .switch input:checked + .slider {
-            background: #147a4c;
+            background: #2563a8;
         }
 
         .switch input:checked + .slider::before {
             transform: translateX(43px);
-            background: white;
+            background: #ffffff;
         }
 
         .switch input:disabled + .slider {
@@ -294,9 +263,6 @@
             cursor: not-allowed;
         }
 
-        /* =====================================================
-           FOOTER
-        ===================================================== */
         .footer-info {
             margin-top: 16px;
             font-size: 0.78rem;
@@ -306,10 +272,7 @@
         }
 
         /* =====================================================
-           =====================================================
-           MODE BAHAYA
-           DESAIN KHUSUS SEPERTI CONTOH YANG DIKIRIM
-           =====================================================
+           MODE BAHAYA (OVERRIDES)
         ===================================================== */
         .berisik-mode .dashboard-wrapper {
             padding: 0;
@@ -321,7 +284,7 @@
             min-height: 100vh;
             border-radius: 0;
             border: none;
-            background: linear-gradient(180deg, #a50e07 0%, #8e0a05 100%);
+            background: linear-gradient(180deg, #a50d06, #8e0804);
             box-shadow: none;
         }
 
@@ -330,208 +293,119 @@
         }
 
         .berisik-mode .brand-badge {
-            background: rgba(0,0,0,0.16);
-            color: white;
+            background: rgba(0,0,0,0.18);
+            color: #ffffff;
         }
 
         .berisik-mode .status-dot {
             background: #ffffff !important;
-            box-shadow: 0 0 15px rgba(255,255,255,0.8);
+            box-shadow: 0 0 12px rgba(255,255,255,0.8);
         }
 
         .berisik-mode .status-container {
             justify-content: center;
-            padding: 20px 30px 40px;
+            padding: 25px 30px 45px;
         }
 
-        /* =====================================================
-           WARNING HEADER
-        ===================================================== */
         .warning-message {
             font-size: clamp(1.2rem, 2vw, 2rem);
             font-weight: 500;
             line-height: 1.5;
-            max-width: 1200px;
+            max-width: 1250px;
             margin-bottom: 25px;
             text-transform: uppercase;
+            color: #ffffff;
         }
 
-        /* =====================================================
-           WARNING LOGO SEGITIGA
-        ===================================================== */
         .warning-logo {
             width: 165px;
             height: 145px;
-            margin: 10px auto 15px;
             position: relative;
+            margin: 5px auto 10px;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: #ed2017;
             clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
-            background: #ef2016;
-            border: 8px solid white;
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.20));
+            filter: drop-shadow(0 8px 12px rgba(0,0,0,0.25));
         }
 
         .warning-logo::before {
             content: "!";
             position: absolute;
             left: 50%;
-            top: 49%;
+            top: 50%;
             transform: translate(-50%, -50%);
-            color: white;
-            font-size: 95px;
-            line-height: 1;
-            font-weight: 900;
+            color: #ffffff;
             font-family: Arial, Helvetica, sans-serif;
+            font-size: 88px;
+            font-weight: 900;
+            line-height: 1;
         }
 
-        /* =====================================================
-           JUDUL PERINGATAN
-        ===================================================== */
         .berisik-mode .status-title {
             font-size: clamp(4.5rem, 10vw, 10rem);
             font-weight: 900;
-            letter-spacing: 7px;
+            letter-spacing: 6px;
             color: #ffffff;
             margin: 5px 0 15px;
-            text-shadow: 0 4px 20px rgba(0,0,0,0.16);
         }
 
         .warning-reference {
-            font-size: clamp(1.1rem, 2vw, 1.7rem);
-            margin-top: 10px;
+            font-size: clamp(1rem, 1.8vw, 1.5rem);
             line-height: 1.5;
             font-weight: 500;
+            color: #ffffff;
         }
 
         .warning-limit {
-            font-size: clamp(1rem, 1.7vw, 1.5rem);
-            margin-top: 5px;
-            font-weight: 400;
+            font-size: clamp(0.95rem, 1.6vw, 1.35rem);
+            margin-top: 4px;
+            color: #ffffff;
         }
 
-        /* =====================================================
-           PANEL SAAT BAHAYA
-        ===================================================== */
         .berisik-mode .bottom-panel {
-            background: rgba(60,0,0,0.14);
-            border-top: 1px solid rgba(255,255,255,0.16);
+            background: rgba(60,0,0,0.12);
+            border-top: 1px solid rgba(255,255,255,0.15);
         }
 
         .berisik-mode .info-box {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.16);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.14);
         }
 
         .berisik-mode .db-subtext {
-            color: rgba(255,255,255,0.75);
-        }
-
-        .berisik-mode .slider {
-            background: rgba(0,0,0,0.35);
-        }
-
-        .berisik-mode .footer-info {
-            color: white;
-            opacity: 0.65;
-        }
-
-        /* =====================================================
-           ANIMASI BAHAYA
-        ===================================================== */
-        @keyframes dangerPulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.88; }
-            100% { opacity: 1; }
-        }
-
-        .berisik-mode .card {
-            animation: dangerPulse 1.5s infinite;
+            color: rgba(255,255,255,0.72);
         }
 
         /* =====================================================
            RESPONSIVE
         ===================================================== */
         @media (max-width: 800px) {
-            .dashboard-wrapper {
-                padding: 12px;
-            }
-            .card {
-                min-height: calc(100vh - 24px);
-            }
-            .card-header {
-                padding: 20px;
-            }
-            .card-header > span:last-child {
-                display: none;
-            }
-            .status-container {
-                padding: 20px;
-            }
-            .icon-wrapper {
-                width: 115px;
-                height: 115px;
-                font-size: 58px;
-                margin-bottom: 30px;
-            }
-            .status-title {
-                font-size: 4rem;
-                letter-spacing: 3px;
-            }
-            .bottom-panel {
-                grid-template-columns: 1fr;
-                padding: 20px;
-                gap: 15px;
-            }
-            .info-box {
-                min-height: 105px;
-                padding: 20px;
-            }
-            .db-value {
-                font-size: 3rem;
-            }
-            .berisik-mode .card {
-                min-height: 100vh;
-            }
-            .warning-message {
-                font-size: 1rem;
-                max-width: 90%;
-            }
-            .warning-logo {
-                width: 125px;
-                height: 110px;
-            }
-            .warning-logo::before {
-                font-size: 70px;
-            }
-            .berisik-mode .status-title {
-                font-size: 4rem;
-                letter-spacing: 3px;
-            }
-            .warning-reference {
-                font-size: 1rem;
-                max-width: 90%;
-            }
-            .warning-limit {
-                font-size: 0.95rem;
-                max-width: 90%;
-            }
+            .dashboard-wrapper { padding: 12px; }
+            .card { min-height: calc(100vh - 24px); }
+            .card-header { padding: 20px; }
+            .card-header > span:last-child { display: none; }
+            .status-container { padding: 20px; }
+            .icon-wrapper { width: 115px; height: 115px; font-size: 58px; margin-bottom: 30px; }
+            .status-title { font-size: 4rem; letter-spacing: 3px; }
+            .bottom-panel { grid-template-columns: 1fr; padding: 20px; gap: 15px; }
+            .info-box { min-height: 105px; padding: 20px; }
+            .db-value { font-size: 3rem; }
+            .berisik-mode .card { min-height: 100vh; }
+            .warning-message { font-size: 1rem; max-width: 95%; }
+            .warning-logo { width: 125px; height: 110px; }
+            .warning-logo::before { font-size: 70px; }
+            .berisik-mode .status-title { font-size: 4rem; letter-spacing: 3px; }
         }
     </style>
 </head>
 
 <body class="menunggu-mode" id="body">
-
-    <!-- =====================================================
-         DASHBOARD
-    ====================================================== -->
     <div class="dashboard-wrapper">
         <div class="card menunggu-theme" id="mainCard">
 
-            <!-- =================================================
-                 HEADER
-            ================================================== -->
+            <!-- HEADER -->
             <div class="card-header">
                 <div class="brand-badge">
                     <div class="status-dot" id="statusDot"></div>
@@ -542,26 +416,25 @@
                 </span>
             </div>
 
-            <!-- =================================================
-                 STATUS
-            ================================================== -->
+            <!-- STATUS -->
             <div class="status-container" id="statusContainer">
-                
-                <!-- ICON BIASA -->
+                <!-- ICON -->
                 <div class="icon-wrapper" id="statusIcon">⏳</div>
 
+                <!-- WARNING MESSAGE -->
+                <div class="warning-message" id="warningMessage" style="display: none;"></div>
+
+                <!-- TITLE -->
                 <h1 class="status-title" id="statusText">MENUNGGU</h1>
 
+                <!-- SUBTITLE -->
                 <div class="status-subtitle" id="statusSub">
                     Menunggu menghubungkan ESP32...
                 </div>
             </div>
 
-            <!-- =================================================
-                 PANEL
-            ================================================== -->
+            <!-- DATA -->
             <div class="bottom-panel">
-
                 <!-- dB -->
                 <div class="info-box">
                     <div class="db-info-group">
@@ -586,35 +459,27 @@
                     </label>
                 </div>
             </div>
+
         </div>
 
-        <!-- FOOTER -->
         <div class="footer-info">
             NOISE GUARD SYSTEM &bull; REAL-TIME MONITORING
         </div>
     </div>
 
-    <!-- =====================================================
-         JAVASCRIPT
-    ====================================================== -->
     <script>
         // =====================================================
         // KONFIGURASI
         // =====================================================
         const POLLING_INTERVAL = 500;
-        
-        // Harus menerima data selama 2 detik sebelum dianggap TERHUBUNG
+        // Data harus diterima terus selama 2 detik sebelum status menjadi TERHUBUNG.
         const CONNECT_DELAY = 2000;
 
-        // =====================================================
         // STATUS KONEKSI
-        // =====================================================
         let espOnlineSince = null;
         let espConnected = false;
 
-        // =====================================================
         // ELEMENT
-        // =====================================================
         const body = document.getElementById("body");
         const mainCard = document.getElementById("mainCard");
         const statusIcon = document.getElementById("statusIcon");
@@ -624,37 +489,52 @@
         const connectionBadge = document.getElementById("connectionBadge");
         const dbValue = document.getElementById("dbValue");
         const buzzerToggle = document.getElementById("buzzerToggle");
-        const statusContainer = document.getElementById("statusContainer");
+        const warningMessage = document.getElementById("warningMessage");
 
         // =====================================================
-        // MODE MENUNGGU
+        // HAPUS TAMPILAN BAHAYA
+        // =====================================================
+        function clearDangerElements() {
+            warningMessage.style.display = "none";
+            warningMessage.innerHTML = "";
+            
+            statusIcon.innerHTML = "⏳";
+            statusIcon.style.display = "flex";
+            statusIcon.className = "icon-wrapper";
+        }
+
+        // =====================================================
+        // MENUNGGU
         // =====================================================
         function showWaitingStatus() {
             mainCard.className = "card menunggu-theme";
             body.className = "menunggu-mode";
             connectionBadge.innerText = "OFFLINE";
             statusDot.style.backgroundColor = "#8190a6";
-            
-            statusIcon.className = "icon-wrapper";
+
+            clearDangerElements();
+
             statusIcon.innerHTML = "⏳";
             statusText.innerHTML = "MENUNGGU";
             statusSub.innerText = "Menunggu menghubungkan ESP32...";
-            
             dbValue.innerText = "0.0";
+            
             buzzerToggle.checked = false;
             buzzerToggle.disabled = true;
         }
 
         // =====================================================
-        // MODE AMAN
+        // AMAN - BIRU
         // =====================================================
         function showSafeStatus(data) {
             mainCard.className = "card aman-theme";
             body.className = "aman-mode";
             connectionBadge.innerText = "TERHUBUNG";
-            statusDot.style.backgroundColor = "#4ade80";
-            
-            statusIcon.className = "icon-wrapper";
+            statusDot.style.backgroundColor = "#4da3ff";
+
+            // Pastikan semua elemen bahaya hilang
+            clearDangerElements();
+
             statusIcon.innerHTML = "🛡️";
             statusText.innerHTML = "AMAN";
             statusSub.innerText = "Tingkat Suara Normal & Terkendali";
@@ -670,7 +550,7 @@
         }
 
         // =====================================================
-        // MODE BAHAYA
+        // BAHAYA - MERAH
         // =====================================================
         function showDangerStatus(data) {
             mainCard.className = "card berisik-theme";
@@ -678,32 +558,22 @@
             connectionBadge.innerText = "TERHUBUNG";
             statusDot.style.backgroundColor = "#ffffff";
 
-            // HILANGKAN ICON LAMA
-            statusIcon.outerHTML = `<div class="warning-logo" id="statusIcon"></div>`;
-            
-            // Ambil ulang element karena outerHTML menggantinya
-            const warningLogo = document.getElementById("statusIcon");
+            // Warning message
+            warningMessage.style.display = "block";
+            warningMessage.innerHTML = `SUARA ANDA MENCAPAI BATAS YANG TELAH DITENTUKAN!<br>MOHON TENANG DAN JANGAN MENGGANGGU PASIEN LAIN!`;
 
-            // PESAN PERINGATAN
-            const oldWarning = document.getElementById("warningMessage");
-            if (!oldWarning) {
-                const message = document.createElement("div");
-                message.id = "warningMessage";
-                message.className = "warning-message";
-                message.innerHTML = `SUARA ANDA MENCAPAI BATAS YANG TELAH DITENTUKAN!<br>MOHON TENANG DAN JANGAN MENGGANGGU PASIEN LAIN!`;
-                statusContainer.insertBefore(message, warningLogo);
-            }
+            // Logo warning
+            statusIcon.innerHTML = `<div class="warning-logo"></div>`;
+            statusIcon.style.display = "flex";
 
-            // JUDUL
+            // Title & Subtitle
             statusText.innerHTML = "PERINGATAN!";
-
-            // SUBTITLE
             statusSub.innerHTML = `
                 <div class="warning-reference">Berdasarkan KEP-48/MENLH/11/1996</div>
                 <div class="warning-limit">Tingkat kebisingan yang diizinkan untuk rumah sakit adalah 55 dB.</div>
             `;
 
-            // NILAI dB
+            // dB
             const db = Number(data.db);
             if (Number.isFinite(db)) {
                 dbValue.innerText = db.toFixed(1);
@@ -711,7 +581,6 @@
                 dbValue.innerText = "0.0";
             }
 
-            // BUZZER
             updateBuzzerState(data);
         }
 
@@ -720,7 +589,6 @@
         // =====================================================
         function updateBuzzerState(data) {
             if (!buzzerToggle) return;
-            
             buzzerToggle.disabled = false;
 
             if (document.activeElement !== buzzerToggle) {
@@ -731,7 +599,7 @@
         }
 
         // =====================================================
-        // BUZZER COMMAND
+        // KONTROL BUZZER
         // =====================================================
         async function toggleBuzzer(isChecked) {
             try {
@@ -747,18 +615,16 @@
         }
 
         // =====================================================
-        // AMBIL DATA ESP32
+        // AMBIL DATA SENSOR
         // =====================================================
         async function fetchESP32Data() {
             try {
-                const response = await fetch("/api/sensor?t=" + Date.now(), {
-                    cache: "no-store"
-                });
-
+                const response = await fetch("/api/sensor?t=" + Date.now(), { cache: "no-store" });
+                
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
                 }
-
+                
                 const data = await response.json();
                 console.log("[SENSOR]", data);
 
@@ -768,7 +634,7 @@
                     return;
                 }
 
-                // DATA MULAI MASUK
+                // DATA PERTAMA MASUK
                 if (espOnlineSince === null) {
                     espOnlineSince = Date.now();
                     espConnected = false;
@@ -777,17 +643,17 @@
                     return;
                 }
 
-                // HITUNG 2 DETIK
+                // HITUNG WAKTU 2 DETIK
                 const connectedTime = Date.now() - espOnlineSince;
                 if (connectedTime < CONNECT_DELAY) {
                     showWaitingStatus();
                     return;
                 }
 
-                // TERHUBUNG
+                // SUDAH TERHUBUNG
                 espConnected = true;
 
-                // BAHAYA / AMAN
+                // STATUS AMAN / BAHAYA
                 if (data.warning === true) {
                     showDangerStatus(data);
                 } else {
@@ -796,35 +662,31 @@
 
             } catch (error) {
                 console.error("[SERVER ERROR]", error);
-                
+
                 espOnlineSince = null;
                 espConnected = false;
-                
+
                 mainCard.className = "card menunggu-theme";
                 body.className = "menunggu-mode";
-                
                 connectionBadge.innerText = "SERVER OFFLINE";
                 statusDot.style.backgroundColor = "#8190a6";
-                
-                statusIcon.className = "icon-wrapper";
+
+                clearDangerElements();
+
                 statusIcon.innerHTML = "⚠️";
                 statusText.innerHTML = "KONEKSI TERPUTUS";
                 statusSub.innerText = "Tidak dapat menghubungi Cloudflare Worker...";
-                
                 dbValue.innerText = "0.0";
+                
                 buzzerToggle.checked = false;
                 buzzerToggle.disabled = true;
             }
         }
 
         // =====================================================
-        // POLLING
+        // POLLING 500 ms
         // =====================================================
         setInterval(fetchESP32Data, POLLING_INTERVAL);
-
-        // =====================================================
-        // REQUEST PERTAMA
-        // =====================================================
         fetchESP32Data();
 
     </script>
