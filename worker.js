@@ -1,6 +1,3 @@
-// ============================================================
-// DURABLE OBJECT: SENSOR STATE
-// ============================================================
 export class SensorState {
   constructor(ctx, env) {
     this.ctx = ctx;
@@ -10,10 +7,9 @@ export class SensorState {
   async fetch(request) {
     const url = new URL(request.url);
 
-    // ========================================================
-    // GET /api/sensor
-    // Website mengambil data terakhir dari ESP32
-    // ========================================================
+    // =========================================================
+    // GET DATA SENSOR
+    // =========================================================
     if (
       request.method === "GET" &&
       url.pathname === "/api/sensor"
@@ -24,7 +20,7 @@ export class SensorState {
       const buzzer =
         await this.ctx.storage.get("buzzerEnabled");
 
-      // Belum pernah menerima data ESP32
+      // Belum pernah menerima data
       if (!data) {
         return jsonResponse({
           online: false,
@@ -37,24 +33,21 @@ export class SensorState {
         });
       }
 
-      // ======================================================
-      // BATAS WAKTU ESP32 DIANGGAP ONLINE
-      // ESP32 mengirim setiap 500 ms.
-      // Jika >3 detik tidak ada data → OFFLINE.
-      // ======================================================
-      const OFFLINE_TIMEOUT = 3000;
+      // =====================================================
+      // ESP32 DIANGGAP OFFLINE JIKA
+      // TIDAK ADA DATA SELAMA 5 DETIK
+      // =====================================================
+      const OFFLINE_TIMEOUT = 5000;
 
-      const lastSeen =
-        Number(data.lastSeen || 0);
+      const lastSeen = Number(data.lastSeen || 0);
 
       const online =
         lastSeen > 0 &&
         (Date.now() - lastSeen) <= OFFLINE_TIMEOUT;
 
-
-      // ======================================================
-      // ESP32 OFFLINE
-      // ======================================================
+      // =====================================================
+      // OFFLINE
+      // =====================================================
       if (!online) {
         return jsonResponse({
           online: false,
@@ -67,10 +60,9 @@ export class SensorState {
         });
       }
 
-
-      // ======================================================
-      // ESP32 ONLINE
-      // ======================================================
+      // =====================================================
+      // ONLINE
+      // =====================================================
       return jsonResponse({
         ...data,
         online: true,
@@ -81,17 +73,15 @@ export class SensorState {
       });
     }
 
-
-    // ========================================================
-    // INTERNAL: SET BUZZER
-    // ========================================================
+    // =========================================================
+    // SET BUZZER
+    // =========================================================
     if (
       request.method === "POST" &&
       url.pathname === "/set-buzzer"
     ) {
       try {
-        const body =
-          await request.json();
+        const body = await request.json();
 
         const enabled =
           body.buzzer === true;
@@ -117,19 +107,17 @@ export class SensorState {
       }
     }
 
-
-    // ========================================================
-    // POST /api/sensor
-    // ESP32 mengirim data
-    // ========================================================
+    // =========================================================
+    // POST DATA SENSOR DARI ESP32
+    // =========================================================
     if (
       request.method === "POST" &&
       url.pathname === "/api/sensor"
     ) {
 
-      // ======================================================
-      // API KEY
-      // ======================================================
+      // =====================================================
+      // CEK API KEY
+      // =====================================================
       const apiKey =
         request.headers.get("X-API-Key");
 
@@ -147,18 +135,13 @@ export class SensorState {
         );
       }
 
-
-      // ======================================================
-      // BACA JSON
-      // ======================================================
       try {
         const body =
           await request.json();
 
-
-        // ====================================================
-        // VALIDASI
-        // ====================================================
+        // ===================================================
+        // VALIDASI DATA
+        // ===================================================
         if (
           !body.device ||
           !Array.isArray(body.readings)
@@ -166,13 +149,11 @@ export class SensorState {
           return jsonResponse(
             {
               success: false,
-              error:
-                "Format data tidak valid"
+              error: "Format data tidak valid"
             },
             400
           );
         }
-
 
         if (
           body.readings.length === 0
@@ -180,36 +161,33 @@ export class SensorState {
           return jsonResponse(
             {
               success: false,
-              error:
-                "Readings kosong"
+              error: "Readings kosong"
             },
             400
           );
         }
 
-
-        // ====================================================
-        // AMBIL DATA TERAKHIR
-        // ====================================================
+        // ===================================================
+        // AMBIL DATA TERBARU
+        // ===================================================
         const reading =
           body.readings[
             body.readings.length - 1
           ];
 
-
-        // ====================================================
-        // STATUS BUZZER DARI WEBSITE
-        // ====================================================
+        // ===================================================
+        // AMBIL STATUS BUZZER DARI STORAGE
+        // ===================================================
         const storedBuzzer =
           await this.ctx.storage.get(
             "buzzerEnabled"
           );
 
-
-        // ====================================================
+        // ===================================================
         // SIMPAN DATA SENSOR
-        // ====================================================
+        // ===================================================
         const sensorData = {
+
           db:
             Number(reading.db) || 0,
 
@@ -228,30 +206,23 @@ export class SensorState {
             reading.t ||
             new Date().toISOString(),
 
-          // WAKTU SEBENARNYA DATA DITERIMA WORKER
+          // Waktu terakhir ESP32 mengirim data
           lastSeen:
             Date.now()
         };
 
-
-        // ====================================================
-        // SIMPAN
-        // ====================================================
         await this.ctx.storage.put(
           "sensorData",
           sensorData
         );
 
-
-        // ====================================================
-        // RESPONSE KE ESP32
-        // ====================================================
+        // ===================================================
+        // BALAS KE ESP32
+        // ===================================================
         return jsonResponse({
           success: true,
-          message:
-            "Data sensor diterima",
-          buzzer:
-            sensorData.buzzer
+          message: "Data sensor diterima",
+          buzzer: sensorData.buzzer
         });
 
       } catch (error) {
@@ -259,32 +230,28 @@ export class SensorState {
         return jsonResponse(
           {
             success: false,
-            error:
-              "JSON tidak valid"
+            error: "JSON tidak valid"
           },
           400
         );
       }
     }
 
-
-    // ========================================================
+    // =========================================================
     // ENDPOINT TIDAK DITEMUKAN
-    // ========================================================
+    // =========================================================
     return jsonResponse(
       {
-        error:
-          "Endpoint tidak ditemukan"
+        error: "Endpoint tidak ditemukan"
       },
       404
     );
   }
 }
 
-
-// ============================================================
+// =============================================================
 // WORKER UTAMA
-// ============================================================
+// =============================================================
 export default {
 
   async fetch(request, env) {
@@ -292,10 +259,9 @@ export default {
     const url =
       new URL(request.url);
 
-
-    // ========================================================
+    // =======================================================
     // API SENSOR
-    // ========================================================
+    // =======================================================
     if (
       url.pathname === "/api/sensor"
     ) {
@@ -311,10 +277,9 @@ export default {
       return stub.fetch(request);
     }
 
-
-    // ========================================================
-    // API BUZZER
-    // ========================================================
+    // =======================================================
+    // KONTROL BUZZER DARI WEB
+    // =======================================================
     if (
       url.pathname === "/buzzer"
     ) {
@@ -325,19 +290,16 @@ export default {
         return jsonResponse(
           {
             success: false,
-            error:
-              "Method tidak diizinkan"
+            error: "Method tidak diizinkan"
           },
           405
         );
       }
 
-
       const state =
         url.searchParams.get(
           "state"
         );
-
 
       if (
         state !== "on" &&
@@ -346,13 +308,11 @@ export default {
         return jsonResponse(
           {
             success: false,
-            error:
-              "state harus on atau off"
+            error: "state harus on atau off"
           },
           400
         );
       }
-
 
       const id =
         env.SENSOR_STATE.idFromName(
@@ -361,7 +321,6 @@ export default {
 
       const stub =
         env.SENSOR_STATE.get(id);
-
 
       return stub.fetch(
         new Request(
@@ -374,34 +333,30 @@ export default {
                 "application/json"
             },
 
-            body:
-              JSON.stringify({
-                buzzer:
-                  state === "on"
-              })
+            body: JSON.stringify({
+              buzzer:
+                state === "on"
+            })
           }
         )
       );
     }
 
-
-    // ========================================================
-    // STATIC ASSETS
-    // ========================================================
-    return env.ASSETS.fetch(
-      request
-    );
+    // =======================================================
+    // FILE WEBSITE
+    // =======================================================
+    return env.ASSETS.fetch(request);
   }
 };
 
-
-// ============================================================
+// =============================================================
 // JSON RESPONSE
-// ============================================================
+// =============================================================
 function jsonResponse(
   data,
   status = 200
 ) {
+
   return new Response(
     JSON.stringify(data),
     {
