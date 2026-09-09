@@ -1,452 +1,268 @@
-<script>
+<!DOCTYPE html>
+<html lang="id">
 
-    // =====================================================
-    // KONFIGURASI
-    // =====================================================
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    // Web mengecek data setiap 500 ms
-    const POLLING_INTERVAL = 500;
+    <title>Peringatan Kebisingan & Sound Level Meter</title>
 
-    // ESP32 harus mengirim data terus selama 2 detik
-    // sebelum dianggap benar-benar TERHUBUNG
-    const CONNECT_DELAY = 2000;
+    <link rel="stylesheet" href="style.css">
+</head>
 
 
-    // =====================================================
-    // STATUS KONEKSI
-    // =====================================================
+<body class="menunggu-mode" id="body">
 
-    let espOnlineSince = null;
-    let espConnected = false;
+    <!-- =====================================================
+         ORNAMEN BACKGROUND
+    ====================================================== -->
 
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
 
-    // =====================================================
-    // ELEMENT DASHBOARD
-    // =====================================================
 
-    const mainCard =
-        document.getElementById("mainCard");
+    <!-- =====================================================
+         DASHBOARD
+    ====================================================== -->
 
-    const statusIcon =
-        document.getElementById("statusIcon");
+    <div class="dashboard-wrapper">
 
-    const statusText =
-        document.getElementById("statusText");
+        <!-- =================================================
+             KARTU UTAMA
+        ================================================== -->
 
-    const statusSub =
-        document.getElementById("statusSub");
+        <div class="card menunggu-theme" id="mainCard">
 
-    const statusDot =
-        document.getElementById("statusDot");
 
-    const connectionBadge =
-        document.getElementById("connectionBadge");
+            <!-- =================================================
+                 HEADER
+            ================================================== -->
 
-    const dbValue =
-        document.getElementById("dbValue");
+            <div class="card-header">
 
-    const buzzerToggle =
-        document.getElementById("buzzerToggle");
+                <div class="brand-badge">
 
+                    <div
+                        class="status-dot"
+                        id="statusDot"
+                    ></div>
 
-    // =====================================================
-    // TAMPILAN MENUNGGU
-    // =====================================================
-    // FUNGSI INI TIDAK MEReset espOnlineSince
-    // supaya timer 2 detik tetap berjalan.
-    // =====================================================
+                    <span id="connectionBadge">
+                        Menunggu Sinyal...
+                    </span>
 
-    function showWaitingStatus() {
+                </div>
 
-        mainCard.className =
-            "card menunggu-theme";
 
-        document.body.className =
-            "menunggu-mode";
+                <span
+                    style="
+                        font-size: 0.85rem;
+                        color: #64748b;
+                        font-weight: 600;
+                        letter-spacing: 1px;
+                    "
+                >
+                    ESP32 SENSOR
+                </span>
 
+            </div>
 
-        connectionBadge.innerText =
-            "OFFLINE";
 
-        statusDot.style.backgroundColor =
-            "var(--accent-wait)";
+            <!-- =================================================
+                 STATUS UTAMA
+            ================================================== -->
 
+            <div
+                class="status-container"
+                id="statusContainer"
+            >
 
-        statusIcon.innerHTML =
-            "⏳";
+                <div
+                    class="ripple-ring"
+                    id="rippleEffect"
+                ></div>
 
-        statusText.innerHTML =
-            "MENUNGGU";
 
-        statusSub.innerText =
-            "Menunggu menghubungkan ESP32...";
+                <div
+                    class="icon-wrapper"
+                    id="statusIcon"
+                >
+                    ⏳
+                </div>
 
 
-        dbValue.innerText =
-            "0.0";
+                <h1
+                    class="status-title"
+                    id="statusText"
+                >
+                    MENUNGGU
+                </h1>
 
 
-        buzzerToggle.checked =
-            false;
+                <div
+                    class="status-subtitle"
+                    id="statusSub"
+                >
+                    Menunggu menghubungkan ESP32...
+                </div>
 
-        buzzerToggle.disabled =
-            true;
-    }
+            </div>
 
 
-    // =====================================================
-    // ESP32 BENAR-BENAR OFFLINE
-    // =====================================================
+            <!-- =================================================
+                 PANEL DATA
+            ================================================== -->
 
-    function showESP32Offline() {
+            <div class="bottom-panel">
 
-        // Karena benar-benar offline,
-        // timer koneksi di-reset.
-        espOnlineSince = null;
 
-        espConnected = false;
+                <!-- =================================================
+                     NILAI dB
+                ================================================== -->
 
-        showWaitingStatus();
-    }
+                <div class="info-box">
 
+                    <div class="db-info-group">
 
-    // =====================================================
-    // STATUS AMAN
-    // =====================================================
+                        <span class="box-label">
+                            🎙️ Intensitas Suara
+                        </span>
 
-    function showSafeStatus(data) {
+                        <span class="db-subtext">
+                            Ambang Batas: 55 dB
+                        </span>
 
-        mainCard.className =
-            "card aman-theme";
+                    </div>
 
-        document.body.className =
-            "aman-mode";
 
+                    <div class="db-value-container">
 
-        connectionBadge.innerText =
-            "TERHUBUNG";
+                        <span
+                            class="db-value"
+                            id="dbValue"
+                        >
+                            0.0
+                        </span>
 
-        statusDot.style.backgroundColor =
-            "var(--accent-green)";
+                        <span class="db-unit">
+                            dB
+                        </span>
 
+                    </div>
 
-        statusIcon.innerHTML =
-            "🛡️";
+                </div>
 
 
-        statusText.innerHTML =
-            "AMAN";
+                <!-- =================================================
+                     BUZZER
+                ================================================== -->
 
-        statusSub.innerText =
-            "Tingkat Suara Normal & Terkendali";
+                <div class="info-box">
 
+                    <div class="db-info-group">
 
-        const db =
-            Number(data.db);
+                        <span class="box-label">
+                            🔔 Alarm Buzzer
+                        </span>
 
-        if (Number.isFinite(db)) {
-            dbValue.innerText =
-                db.toFixed(1);
-        } else {
-            dbValue.innerText =
-                "0.0";
-        }
-    }
+                        <span class="db-subtext">
+                            Aktifkan peringatan audio
+                        </span>
 
+                    </div>
 
-    // =====================================================
-    // STATUS BAHAYA
-    // =====================================================
 
-    function showDangerStatus(data) {
+                    <label class="switch">
 
-        mainCard.className =
-            "card berisik-theme berisik-card";
+                        <input
+                            type="checkbox"
+                            id="buzzerToggle"
+                            onchange="toggleBuzzer(this.checked)"
+                            checked
+                        >
 
-        document.body.className =
-            "berisik-mode";
+                        <span class="slider"></span>
 
+                    </label>
 
-        connectionBadge.innerText =
-            "TERHUBUNG";
+                </div>
 
-        statusDot.style.backgroundColor =
-            "var(--accent-green)";
+            </div>
 
+        </div>
 
-        statusIcon.innerHTML =
-            "🚨";
 
+        <!-- =================================================
+             FOOTER
+        ================================================== -->
 
-        statusText.innerHTML =
-            "BAHAYA!";
+        <div class="footer-info">
+            NOISE GUARD SYSTEM &bull; REAL-TIME MONITORING
+        </div>
 
-        statusSub.innerText =
-            "LINGKUNGAN TERLALU BISING (>55 dB)";
+    </div>
 
 
-        const db =
-            Number(data.db);
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
 
-        if (Number.isFinite(db)) {
-            dbValue.innerText =
-                db.toFixed(1);
-        } else {
-            dbValue.innerText =
-                "0.0";
-        }
-    }
+    <script>
 
+        // =====================================================
+        // KONFIGURASI
+        // =====================================================
 
-    // =====================================================
-    // SINKRONISASI BUZZER
-    // =====================================================
+        // Website mengecek data setiap 500 ms
+        const POLLING_INTERVAL = 500;
 
-    function updateBuzzerState(data) {
+        // Data harus masuk terus selama 2 detik
+        // sebelum ESP32 dianggap TERHUBUNG
+        const CONNECT_DELAY = 2000;
 
-        if (!buzzerToggle) {
-            return;
-        }
 
+        // =====================================================
+        // STATUS KONEKSI
+        // =====================================================
 
-        buzzerToggle.disabled =
-            false;
+        let espOnlineSince = null;
+        let espConnected = false;
 
 
-        if (
-            document.activeElement !==
-            buzzerToggle
-        ) {
+        // =====================================================
+        // ELEMENT
+        // =====================================================
 
-            if (
-                data.buzzer !== undefined
-            ) {
+        const mainCard =
+            document.getElementById("mainCard");
 
-                buzzerToggle.checked =
-                    Boolean(data.buzzer);
-            }
-        }
-    }
+        const statusIcon =
+            document.getElementById("statusIcon");
 
+        const statusText =
+            document.getElementById("statusText");
 
-    // =====================================================
-    // KONTROL BUZZER
-    // =====================================================
+        const statusSub =
+            document.getElementById("statusSub");
 
-    async function toggleBuzzer(isChecked) {
+        const statusDot =
+            document.getElementById("statusDot");
 
-        try {
+        const connectionBadge =
+            document.getElementById("connectionBadge");
 
-            const response =
-                await fetch(
-                    `/buzzer?state=${isChecked ? "on" : "off"}`
-                );
+        const dbValue =
+            document.getElementById("dbValue");
 
+        const buzzerToggle =
+            document.getElementById("buzzerToggle");
 
-            if (!response.ok) {
 
-                throw new Error(
-                    `HTTP ${response.status}`
-                );
-            }
+        // =====================================================
+        // MENUNGGU
+        // =====================================================
 
-
-            const result =
-                await response.json();
-
-
-            console.log(
-                "[BUZZER] Response:",
-                result
-            );
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "[BUZZER] Gagal mengubah status:",
-                error
-            );
-
-        }
-    }
-
-
-    // =====================================================
-    // AMBIL DATA ESP32
-    // =====================================================
-
-    async function fetchESP32Data() {
-
-        try {
-
-            const response =
-                await fetch(
-                    "/api/sensor?t=" +
-                    Date.now(),
-                    {
-                        cache: "no-store"
-                    }
-                );
-
-
-            // =============================================
-            // SERVER ERROR
-            // =============================================
-
-            if (!response.ok) {
-
-                throw new Error(
-                    `HTTP ${response.status}`
-                );
-            }
-
-
-            const data =
-                await response.json();
-
-
-            console.log(
-                "[SENSOR]",
-                data
-            );
-
-
-            // =============================================
-            // ESP32 TIDAK MENGIRIM DATA
-            // Worker akan memberikan online:false
-            // setelah 5 detik tidak menerima data.
-            // =============================================
-
-            if (data.online !== true) {
-
-                showESP32Offline();
-
-                return;
-            }
-
-
-            // =============================================
-            // DATA ESP32 SUDAH MULAI MASUK
-            // =============================================
-
-            if (espOnlineSince === null) {
-
-                espOnlineSince =
-                    Date.now();
-
-                espConnected =
-                    false;
-
-                console.log(
-                    "[ESP32] Data mulai diterima."
-                );
-
-                console.log(
-                    "[ESP32] Menunggu 2 detik untuk koneksi stabil..."
-                );
-
-
-                // Tampilkan MENUNGGU,
-                // TAPI JANGAN reset timer.
-                showWaitingStatus();
-
-                return;
-            }
-
-
-            // =============================================
-            // HITUNG DURASI DATA MASUK
-            // =============================================
-
-            const connectedTime =
-                Date.now() -
-                espOnlineSince;
-
-
-            console.log(
-                "[ESP32] Stabil selama:",
-                connectedTime,
-                "ms"
-            );
-
-
-            // =============================================
-            // BELUM MENCAPAI 2 DETIK
-            // =============================================
-
-            if (
-                connectedTime <
-                CONNECT_DELAY
-            ) {
-
-                espConnected =
-                    false;
-
-                showWaitingStatus();
-
-                return;
-            }
-
-
-            // =============================================
-            // ESP32 SUDAH TERHUBUNG
-            // =============================================
-
-            if (!espConnected) {
-
-                console.log(
-                    "[ESP32] TERHUBUNG!"
-                );
-            }
-
-            espConnected =
-                true;
-
-
-            // =============================================
-            // STATUS AMAN / BAHAYA
-            // =============================================
-
-            if (
-                data.warning === true
-            ) {
-
-                showDangerStatus(
-                    data
-                );
-
-            } else {
-
-                showSafeStatus(
-                    data
-                );
-            }
-
-
-            // =============================================
-            // UPDATE BUZZER
-            // =============================================
-
-            updateBuzzerState(
-                data
-            );
-
-        }
-
-        catch (error) {
-
-            // =============================================
-            // SERVER / WORKER ERROR
-            // =============================================
-
-            espOnlineSince =
-                null;
-
-            espConnected =
-                false;
-
+        function showWaitingStatus() {
 
             mainCard.className =
                 "card menunggu-theme";
@@ -456,7 +272,7 @@
 
 
             connectionBadge.innerText =
-                "SERVER OFFLINE";
+                "OFFLINE";
 
 
             statusDot.style.backgroundColor =
@@ -464,15 +280,15 @@
 
 
             statusIcon.innerHTML =
-                "⚠️";
+                "⏳";
 
 
             statusText.innerHTML =
-                "KONEKSI TERPUTUS";
+                "MENUNGGU";
 
 
             statusSub.innerText =
-                "Tidak dapat menghubungi Cloudflare Worker...";
+                "Menunggu menghubungkan ESP32...";
 
 
             dbValue.innerText =
@@ -482,32 +298,449 @@
             buzzerToggle.checked =
                 false;
 
+
             buzzerToggle.disabled =
                 true;
-
-
-            console.error(
-                "[SERVER ERROR]",
-                error
-            );
         }
-    }
 
 
-    // =====================================================
-    // POLLING SETIAP 500 ms
-    // =====================================================
+        // =====================================================
+        // ESP32 OFFLINE
+        // =====================================================
 
-    setInterval(
-        fetchESP32Data,
-        POLLING_INTERVAL
-    );
+        function showESP32Offline() {
+
+            // Reset timer karena memang tidak ada data
+            espOnlineSince = null;
+
+            espConnected = false;
+
+            showWaitingStatus();
+        }
 
 
-    // =====================================================
-    // REQUEST PERTAMA
-    // =====================================================
+        // =====================================================
+        // STATUS AMAN
+        // =====================================================
 
-    fetchESP32Data();
+        function showSafeStatus(data) {
 
-</script>
+            mainCard.className =
+                "card aman-theme";
+
+            document.body.className =
+                "aman-mode";
+
+
+            connectionBadge.innerText =
+                "TERHUBUNG";
+
+
+            statusDot.style.backgroundColor =
+                "var(--accent-green)";
+
+
+            statusIcon.innerHTML =
+                "🛡️";
+
+
+            statusText.innerHTML =
+                "AMAN";
+
+
+            statusSub.innerText =
+                "Tingkat Suara Normal & Terkendali";
+
+
+            const db =
+                Number(data.db);
+
+
+            if (Number.isFinite(db)) {
+
+                dbValue.innerText =
+                    db.toFixed(1);
+
+            } else {
+
+                dbValue.innerText =
+                    "0.0";
+            }
+        }
+
+
+        // =====================================================
+        // STATUS BAHAYA
+        // =====================================================
+
+        function showDangerStatus(data) {
+
+            mainCard.className =
+                "card berisik-theme berisik-card";
+
+            document.body.className =
+                "berisik-mode";
+
+
+            connectionBadge.innerText =
+                "TERHUBUNG";
+
+
+            statusDot.style.backgroundColor =
+                "var(--accent-green)";
+
+
+            statusIcon.innerHTML =
+                "🚨";
+
+
+            statusText.innerHTML =
+                "BAHAYA!";
+
+
+            statusSub.innerText =
+                "LINGKUNGAN TERLALU BISING (>55 dB)";
+
+
+            const db =
+                Number(data.db);
+
+
+            if (Number.isFinite(db)) {
+
+                dbValue.innerText =
+                    db.toFixed(1);
+
+            } else {
+
+                dbValue.innerText =
+                    "0.0";
+            }
+        }
+
+
+        // =====================================================
+        // UPDATE STATUS BUZZER
+        // =====================================================
+
+        function updateBuzzerState(data) {
+
+            if (!buzzerToggle) {
+                return;
+            }
+
+
+            buzzerToggle.disabled =
+                false;
+
+
+            if (
+                document.activeElement !==
+                buzzerToggle
+            ) {
+
+                if (
+                    data.buzzer !== undefined
+                ) {
+
+                    buzzerToggle.checked =
+                        Boolean(data.buzzer);
+                }
+            }
+        }
+
+
+        // =====================================================
+        // KONTROL BUZZER
+        // =====================================================
+
+        async function toggleBuzzer(isChecked) {
+
+            try {
+
+                const response =
+                    await fetch(
+                        `/buzzer?state=${isChecked ? "on" : "off"}`
+                    );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        `HTTP ${response.status}`
+                    );
+                }
+
+
+                const result =
+                    await response.json();
+
+
+                console.log(
+                    "[BUZZER]",
+                    result
+                );
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "[BUZZER] Gagal mengubah status:",
+                    error
+                );
+
+            }
+        }
+
+
+        // =====================================================
+        // AMBIL DATA ESP32
+        // =====================================================
+
+        async function fetchESP32Data() {
+
+            try {
+
+                // -------------------------------------------------
+                // Request ke Worker
+                // -------------------------------------------------
+
+                const response =
+                    await fetch(
+                        "/api/sensor?t=" +
+                        Date.now(),
+                        {
+                            cache: "no-store"
+                        }
+                    );
+
+
+                // -------------------------------------------------
+                // HTTP ERROR
+                // -------------------------------------------------
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        `HTTP ${response.status}`
+                    );
+                }
+
+
+                // -------------------------------------------------
+                // JSON
+                // -------------------------------------------------
+
+                const data =
+                    await response.json();
+
+
+                console.log(
+                    "[SENSOR]",
+                    data
+                );
+
+
+                // =================================================
+                // ESP32 OFFLINE
+                // =================================================
+
+                if (
+                    data.online !== true
+                ) {
+
+                    showESP32Offline();
+
+                    return;
+                }
+
+
+                // =================================================
+                // DATA ESP32 MULAI MASUK
+                // =================================================
+
+                // Hanya dijalankan sekali ketika
+                // pertama kali menerima data setelah offline.
+
+                if (
+                    espOnlineSince === null
+                ) {
+
+                    espOnlineSince =
+                        Date.now();
+
+                    espConnected =
+                        false;
+
+
+                    console.log(
+                        "[ESP32] Data mulai diterima"
+                    );
+
+
+                    console.log(
+                        "[ESP32] Menunggu 2 detik..."
+                    );
+
+
+                    // Tampilkan mode menunggu.
+                    // PENTING:
+                    // fungsi ini TIDAK mereset timer.
+                    showWaitingStatus();
+
+
+                    return;
+                }
+
+
+                // =================================================
+                // HITUNG DURASI DATA
+                // =================================================
+
+                const connectedTime =
+                    Date.now() -
+                    espOnlineSince;
+
+
+                console.log(
+                    "[ESP32] Durasi:",
+                    connectedTime,
+                    "ms"
+                );
+
+
+                // =================================================
+                // BELUM 2 DETIK
+                // =================================================
+
+                if (
+                    connectedTime <
+                    CONNECT_DELAY
+                ) {
+
+                    espConnected =
+                        false;
+
+
+                    showWaitingStatus();
+
+
+                    return;
+                }
+
+
+                // =================================================
+                // TERHUBUNG
+                // =================================================
+
+                espConnected =
+                    true;
+
+
+                // =================================================
+                // STATUS AMAN / BAHAYA
+                // =================================================
+
+                if (
+                    data.warning === true
+                ) {
+
+                    showDangerStatus(data);
+
+                } else {
+
+                    showSafeStatus(data);
+                }
+
+
+                // =================================================
+                // BUZZER
+                // =================================================
+
+                updateBuzzerState(data);
+
+            }
+
+            catch (error) {
+
+                // =================================================
+                // SERVER ERROR
+                // =================================================
+
+                espOnlineSince =
+                    null;
+
+                espConnected =
+                    false;
+
+
+                mainCard.className =
+                    "card menunggu-theme";
+
+
+                document.body.className =
+                    "menunggu-mode";
+
+
+                connectionBadge.innerText =
+                    "SERVER OFFLINE";
+
+
+                statusDot.style.backgroundColor =
+                    "var(--accent-wait)";
+
+
+                statusIcon.innerHTML =
+                    "⚠️";
+
+
+                statusText.innerHTML =
+                    "KONEKSI TERPUTUS";
+
+
+                statusSub.innerText =
+                    "Tidak dapat menghubungi Cloudflare Worker...";
+
+
+                dbValue.innerText =
+                    "0.0";
+
+
+                buzzerToggle.checked =
+                    false;
+
+
+                buzzerToggle.disabled =
+                    true;
+
+
+                console.error(
+                    "[SERVER ERROR]",
+                    error
+                );
+            }
+        }
+
+
+        // =====================================================
+        // POLLING 500 ms
+        // =====================================================
+
+        setInterval(
+            fetchESP32Data,
+            POLLING_INTERVAL
+        );
+
+
+        // =====================================================
+        // REQUEST PERTAMA
+        // =====================================================
+
+        fetchESP32Data();
+
+    </script>
+
+</body>
+
+</html>
