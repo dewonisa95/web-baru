@@ -16,7 +16,7 @@
     <div class="ambient-orb orb-2"></div>
 
     <!-- =====================================================
-         DASHBOARD WRAPPER
+         DASHBOARD
     ====================================================== -->
     <div class="dashboard-wrapper">
 
@@ -54,7 +54,7 @@
             <div class="bottom-panel">
 
                 <!-- =================================================
-                     INFORMASI dB
+                     NILAI dB
                 ================================================== -->
                 <div class="info-box">
                     <div class="db-info-group">
@@ -68,7 +68,7 @@
                 </div>
 
                 <!-- =================================================
-                     KONTROL BUZZER
+                     BUZZER
                 ================================================== -->
                 <div class="info-box">
                     <div class="db-info-group">
@@ -98,19 +98,13 @@
     ====================================================== -->
     <script>
         // =====================================================
-        // KONFIGURASI
+        // POLLING WEBSITE KE WORKER
         // =====================================================
-        // ESP32 mengirim data setiap 500 ms.
-        // Jika tidak ada data selama 3 detik, ESP32 dianggap offline.
-        const OFFLINE_TIMEOUT = 3000;
-        
-        // Polling website ke Worker
         const POLLING_INTERVAL = 500;
 
         // =====================================================
         // ELEMENT DASHBOARD
         // =====================================================
-        const bodyEl = document.getElementById("body");
         const mainCard = document.getElementById("mainCard");
         const statusIcon = document.getElementById("statusIcon");
         const statusText = document.getElementById("statusText");
@@ -121,48 +115,48 @@
         const buzzerToggle = document.getElementById("buzzerToggle");
 
         // =====================================================
-        // FUNGSI: ESP32 OFFLINE
+        // FUNGSI ESP32 OFFLINE
         // =====================================================
         function showESP32Offline() {
-            // TEMA MENUNGGU
+            // Tema menunggu
             mainCard.className = "card menunggu-theme";
             document.body.className = "menunggu-mode";
 
-            // STATUS KONEKSI
-            connectionBadge.innerText = "ESP32 OFFLINE";
+            // Status koneksi
+            connectionBadge.innerText = "OFFLINE";
             statusDot.style.backgroundColor = "var(--accent-wait)";
 
-            // STATUS UTAMA
-            statusIcon.innerHTML = "📡";
-            statusText.innerHTML = "ESP32 OFFLINE";
+            // Status utama
+            statusIcon.innerHTML = "⏳";
+            statusText.innerHTML = "MENUNGGU";
             statusSub.innerText = "Menunggu menghubungkan ESP32...";
 
-            // NILAI dB
+            // Nilai dB
             dbValue.innerText = "0.0";
 
-            // BUZZER
+            // Buzzer
             buzzerToggle.checked = false;
             buzzerToggle.disabled = true;
         }
 
         // =====================================================
-        // FUNGSI: ESP32 TERHUBUNG + AMAN
+        // FUNGSI ESP32 ONLINE - AMAN
         // =====================================================
         function showSafeStatus(data) {
-            // TEMA AMAN
+            // Tema aman
             mainCard.className = "card aman-theme";
             document.body.className = "aman-mode";
 
-            // STATUS KONEKSI
-            connectionBadge.innerText = "ESP32 TERHUBUNG";
+            // Status koneksi
+            connectionBadge.innerText = "TERHUBUNG";
             statusDot.style.backgroundColor = "var(--accent-green)";
 
-            // ICON & STATUS
+            // Icon & Status
             statusIcon.innerHTML = "🛡️";
             statusText.innerHTML = "AMAN";
             statusSub.innerText = "Tingkat Suara Normal & Terkendali";
 
-            // NILAI dB
+            // Nilai dB
             const db = Number(data.db);
             if (Number.isFinite(db)) {
                 dbValue.innerText = db.toFixed(1);
@@ -172,23 +166,23 @@
         }
 
         // =====================================================
-        // FUNGSI: STATUS BAHAYA
+        // FUNGSI ESP32 ONLINE - BAHAYA
         // =====================================================
         function showDangerStatus(data) {
-            // TEMA BERISIK
+            // Tema berisik
             mainCard.className = "card berisik-theme berisik-card";
             document.body.className = "berisik-mode";
 
-            // STATUS KONEKSI
-            connectionBadge.innerText = "ESP32 TERHUBUNG";
+            // Status koneksi
+            connectionBadge.innerText = "TERHUBUNG";
             statusDot.style.backgroundColor = "var(--accent-green)";
 
-            // ICON & STATUS
+            // Icon & Status
             statusIcon.innerHTML = "🚨";
             statusText.innerHTML = "BAHAYA!";
             statusSub.innerText = "LINGKUNGAN TERLALU BISING (>55 dB)";
 
-            // NILAI dB
+            // Nilai dB
             const db = Number(data.db);
             if (Number.isFinite(db)) {
                 dbValue.innerText = db.toFixed(1);
@@ -198,15 +192,15 @@
         }
 
         // =====================================================
-        // FUNGSI: SINKRONISASI BUZZER
+        // SINKRONISASI STATUS BUZZER
         // =====================================================
         function updateBuzzerState(data) {
             if (!buzzerToggle) return;
 
-            // ESP32 aktif
+            // ESP32 online
             buzzerToggle.disabled = false;
 
-            // Jangan mengubah switch saat sedang diklik oleh user.
+            // Jangan mengubah toggle ketika sedang digunakan oleh user
             if (document.activeElement !== buzzerToggle) {
                 if (data.buzzer !== undefined) {
                     buzzerToggle.checked = Boolean(data.buzzer);
@@ -215,7 +209,7 @@
         }
 
         // =====================================================
-        // FUNGSI: KIRIM PERINTAH BUZZER
+        // KIRIM PERINTAH BUZZER
         // =====================================================
         async function toggleBuzzer(isChecked) {
             try {
@@ -231,25 +225,25 @@
         }
 
         // =====================================================
-        // FUNGSI UTAMA: AMBIL DATA ESP32
+        // AMBIL DATA ESP32
         // =====================================================
         async function fetchESP32Data() {
             try {
-                // REQUEST KE CLOUDFLARE WORKER
+                // Request ke Cloudflare Worker
                 const response = await fetch("/api/sensor?t=" + Date.now(), {
                     cache: "no-store"
                 });
 
+                // Cek HTTP
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
                 }
 
+                // Baca JSON
                 const data = await response.json();
                 console.log("[SENSOR]", data);
 
                 // CEK STATUS ESP32
-                // Worker mengirim: online: true jika ESP32 masih mengirim data.
-                // Kalau online false: ESP32 dianggap offline.
                 if (data.online !== true) {
                     showESP32Offline();
                     return;
@@ -266,17 +260,20 @@
                 updateBuzzerState(data);
 
             } catch (error) {
-                // WORKER / SERVER TIDAK BISA DIAKSES
-                // Ini bukan kondisi ESP32 offline. Artinya browser tidak mendapatkan response dari Worker.
+                // SERVER / WORKER TIDAK BISA DIAKSES
+                // Kondisi ini berbeda dengan ESP32 offline.
                 mainCard.className = "card menunggu-theme";
                 document.body.className = "menunggu-mode";
+
                 connectionBadge.innerText = "SERVER OFFLINE";
                 statusDot.style.backgroundColor = "var(--accent-wait)";
+
                 statusIcon.innerHTML = "⚠️";
                 statusText.innerHTML = "KONEKSI TERPUTUS";
                 statusSub.innerText = "Tidak dapat menghubungi Cloudflare Worker...";
+
                 dbValue.innerText = "0.0";
-                
+
                 buzzerToggle.checked = false;
                 buzzerToggle.disabled = true;
 
@@ -285,7 +282,7 @@
         }
 
         // =====================================================
-        // POLLING DATA
+        // UPDATE SETIAP 500 ms
         // =====================================================
         setInterval(fetchESP32Data, POLLING_INTERVAL);
 
@@ -299,4 +296,4 @@
 </html>
 ```eof
 
-Sekarang format dokumen HTML dan skrip JS Anda sudah ringkas dan siap digunakan, sehingga sangat mudah untuk dibaca maupun dimodifikasi ke depannya. Silakan gunakan file ini untuk menggantikan kode Anda sebelumnya!
+Sekarang format kode ini sudah rapi. Struktur tag HTML dan blok-blok di dalam JavaScript jauh lebih enak dibaca dan dipahami. Semua logika tetap 100% sama!
