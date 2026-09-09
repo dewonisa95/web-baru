@@ -1,402 +1,1396 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Peringatan Kebisingan & Sound Level Meter</title>
-    
-    <style>
-        :root {
-            --bg-primary: #050810;
-            --card-bg: rgba(19, 28, 46, 0.65);
-            --card-border: rgba(255, 255, 255, 0.1);
-            --accent-green: #10b981;
-            --accent-green-glow: rgba(16, 185, 129, 0.4);
-            --accent-red: #ef4444;
-            --accent-red-glow: rgba(239, 68, 68, 0.4);
-            --accent-wait: #64748b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-        }
+/* =========================================================
+   NOISE GUARD SYSTEM
+   STYLE.CSS
+   ========================================================= */
 
-        * { box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-        
-        body { 
-            margin: 0; padding: 20px; 
-            background-color: var(--bg-primary); 
-            color: var(--text-main); 
-            display: flex; justify-content: center; align-items: center; 
-            min-height: 100vh; overflow-x: hidden;
-            position: relative;
-            transition: background 0.8s ease;
-        }
 
-        /* Ornamen Cahaya Ambient di Latar Belakang */
-        .ambient-orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(100px);
-            z-index: -1;
-            transition: all 1s ease;
-            opacity: 0.5;
-        }
-        .orb-1 { top: -10%; left: -10%; width: 40vw; height: 40vw; background: var(--accent-wait); }
-        .orb-2 { bottom: -10%; right: -10%; width: 50vw; height: 50vw; background: var(--accent-wait); opacity: 0.3; }
+/* =========================================================
+   ROOT / VARIABLES
+   ========================================================= */
 
-        /* Pembungkus Utama */
-        .dashboard-wrapper {
-            width: 100%; 
-            max-width: 850px; /* Lebar optimal untuk layar besar */
-            display: flex; flex-direction: column; gap: 24px;
-            z-index: 1;
-        }
+:root {
+    --bg-primary: #050810;
 
-        /* Desain Kartu Utama Glassmorphism */
-        .card { 
-            background: var(--card-bg); 
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border-radius: 32px; 
-            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1); 
-            border: 1px solid var(--card-border); 
-            display: flex; flex-direction: column; 
-            position: relative;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
-        }
+    --card-bg: rgba(12, 18, 32, 0.88);
+    --card-bg-soft: rgba(18, 26, 43, 0.72);
 
-        /* Header Kartu (Badge Koneksi) */
-        .card-header {
-            padding: 24px 32px 0 32px;
-            display: flex; justify-content: space-between; align-items: center;
-            z-index: 2;
-        }
+    --card-border: rgba(255, 255, 255, 0.10);
 
-        .brand-badge {
-            display: flex; align-items: center; gap: 10px;
-            font-size: 0.85rem; font-weight: 600; color: var(--text-muted);
-            background: rgba(0, 0, 0, 0.3);
-            padding: 8px 16px; border-radius: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-        }
+    --accent-green: #10b981;
+    --accent-green-light: #34d399;
+    --accent-green-glow: rgba(16, 185, 129, 0.35);
 
-        .status-dot {
-            width: 10px; height: 10px; border-radius: 50%;
-            background-color: var(--accent-wait);
-            box-shadow: 0 0 12px currentColor;
-            transition: background-color 0.3s;
-        }
+    --accent-red: #ef4444;
+    --accent-red-light: #fca5a5;
+    --accent-red-glow: rgba(239, 68, 68, 0.40);
 
-        /* Area Status Utama (Posisi Tengah dan Besar) */
-        .status-container { 
-            padding: 40px 24px 60px 24px; 
-            text-align: center; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            transition: all 0.4s ease; 
-            z-index: 2;
-            position: relative;
-        }
+    --accent-wait: #64748b;
+    --accent-wait-light: #94a3b8;
 
-        /* Ornamen Gelombang Suara (Ripple) di belakang Icon saat Bahaya */
-        .ripple-ring {
-            position: absolute;
-            width: 100px; height: 100px;
-            background: transparent;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            z-index: 0;
-            opacity: 0;
-        }
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-dark-muted: #64748b;
 
-        /* Icon Wrapper dengan Efek Glow */
-        .icon-wrapper {
-            width: 110px; height: 110px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 3.5rem; margin-bottom: 24px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 1;
-            position: relative;
-        }
+    --shadow-main:
+        0 25px 60px rgba(0, 0, 0, 0.45);
 
-        .status-title { 
-            font-size: 3.5rem; font-weight: 900; margin: 0; 
-            line-height: 1.1; letter-spacing: 1px; 
-            text-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            z-index: 1;
-            text-align: center;
-        }
-        
-        .status-subtitle { 
-            font-size: 1.1rem; font-weight: 500; margin-top: 16px; 
-            letter-spacing: 0.5px;
-            z-index: 1;
-            text-align: center;
-        }
+    --shadow-inset:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
 
-        /* === TEMA: MENUNGGU === */
-        .menunggu-theme .status-title { color: var(--text-muted); }
-        .menunggu-theme .status-subtitle { color: #64748b; }
-        .menunggu-theme .icon-wrapper { color: var(--text-muted); }
-        body.menunggu-mode .orb-1, body.menunggu-mode .orb-2 { background: #334155; }
 
-        /* === TEMA: AMAN === */
-        .aman-theme .status-dot { background-color: var(--accent-green); color: var(--accent-green); }
-        .aman-theme .icon-wrapper { 
-            color: var(--accent-green); 
-            background: rgba(16, 185, 129, 0.1); 
-            border-color: rgba(16, 185, 129, 0.3);
-            box-shadow: 0 0 40px rgba(16, 185, 129, 0.2);
-        }
-        .aman-theme .status-title { color: var(--accent-green); text-shadow: 0 0 30px rgba(16, 185, 129, 0.3); }
-        .aman-theme .status-subtitle { color: #34d399; opacity: 0.9; }
-        body.aman-mode .orb-1 { background: rgba(16, 185, 129, 0.15); }
-        body.aman-mode .orb-2 { background: rgba(5, 150, 105, 0.1); }
+/* =========================================================
+   RESET
+   ========================================================= */
 
-        /* === TEMA: BERISIK === */
-        .berisik-theme .status-dot { background-color: var(--accent-red); color: var(--accent-red); }
-        .berisik-theme .icon-wrapper { 
-            color: var(--accent-red); 
-            background: rgba(239, 68, 68, 0.15); 
-            border-color: rgba(239, 68, 68, 0.5); 
-            box-shadow: 0 0 50px rgba(239, 68, 68, 0.4);
-            animation: pulse-icon 1s infinite alternate; 
-        }
-        .berisik-theme .status-title { color: var(--accent-red); text-shadow: 0 0 40px rgba(239, 68, 68, 0.5); }
-        .berisik-theme .status-subtitle { color: #fca5a5; font-weight: 700; }
-        
-        .berisik-theme .ripple-ring {
-            border-color: rgba(239, 68, 68, 0.6);
-            animation: ripple-effect 1.5s linear infinite;
-        }
-        
-        body.berisik-mode .orb-1 { background: rgba(239, 68, 68, 0.2); }
-        body.berisik-mode .orb-2 { background: rgba(185, 28, 28, 0.15); }
+* {
+    box-sizing: border-box;
 
-        .berisik-card { border-color: rgba(239, 68, 68, 0.5) !important; }
+    margin: 0;
+    padding: 0;
 
-        @keyframes pulse-icon {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.15); }
-        }
+    font-family:
+        "Inter",
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
 
-        @keyframes ripple-effect {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(2.5); opacity: 0; }
-        }
 
-        /* Panel Bawah (Grid Layout) */
-        .bottom-panel { 
-            background-color: rgba(0, 0, 0, 0.2); 
-            padding: 30px; 
-            border-top: 1px solid var(--card-border); 
-            display: grid;
-            grid-template-columns: 1fr; /* Default Mobile: Susun bawah (Vertikal) */
-            gap: 20px;
-            z-index: 2;
-        }
-        
-        /* Kotak Info (Desibel & Buzzer) */
-        .info-box { 
-            background: rgba(255, 255, 255, 0.03); 
-            border-radius: 24px; padding: 24px; 
-            display: flex; justify-content: space-between; align-items: center; 
-            border: 1px solid rgba(255, 255, 255, 0.05); 
-            transition: transform 0.3s ease;
-        }
-        .info-box:hover { background: rgba(255, 255, 255, 0.05); transform: translateY(-2px); }
+/* =========================================================
+   HTML
+   ========================================================= */
 
-        .db-info-group { display: flex; flex-direction: column; gap: 4px; }
-        .box-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px;}
-        .db-subtext { font-size: 0.8rem; color: #64748b; }
-        
-        .db-value-container { display: flex; align-items: baseline; gap: 6px; }
-        .db-value { font-size: 3rem; font-weight: 800; margin: 0; color: var(--text-main); line-height: 1; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .db-unit { font-size: 1.2rem; color: var(--text-muted); font-weight: 600; }
-        
-        /* Desain Saklar (Toggle Switch) Premium */
-        .switch { position: relative; display: inline-block; width: 60px; height: 32px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { 
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; 
-            background-color: #334155; transition: .4s cubic-bezier(0.4, 0, 0.2, 1); 
-            border-radius: 34px; border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
-        }
-        .slider:before { 
-            position: absolute; content: ""; height: 24px; width: 24px; 
-            left: 3px; bottom: 3px; background-color: white; 
-            transition: .4s cubic-bezier(0.4, 0, 0.2, 1); 
-            border-radius: 50%; 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        }
-        input:checked + .slider { background-color: var(--accent-green); box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
-        input:checked + .slider:before { transform: translateX(28px); }
+html {
+    width: 100%;
+    min-height: 100%;
+}
 
-        .footer-info {
-            text-align: center;
-            font-size: 0.8rem;
-            color: #475569;
-            letter-spacing: 0.5px;
-            font-weight: 500;
-        }
 
-        /* MEDIA QUERY UNTUK LAYAR BESAR (LAPTOP/TABLET LANDSCAPE) */
-        @media (min-width: 768px) {
-            /* Status sangat besar dan jelas di tengah layar */
-            .status-container { padding: 60px 40px 80px 40px; }
-            .icon-wrapper { width: 140px; height: 140px; font-size: 4.5rem; margin-bottom: 30px; }
-            .status-title { font-size: 5rem; }
-            .status-subtitle { font-size: 1.4rem; }
-            
-            .ripple-ring { width: 140px; height: 140px; }
+/* =========================================================
+   BODY
+   ========================================================= */
 
-            /* Panel bawah dibagi menjadi 2 kolom rapi bersampingan (Grid 2 Kolom) */
-            .bottom-panel {
-                grid-template-columns: 1fr 1fr;
-                padding: 40px;
-                gap: 30px;
-            }
+body {
+    margin: 0;
 
-            .info-box { padding: 30px; }
-            .db-value { font-size: 3.5rem; }
-        }
-    </style>
-</head>
+    padding: 24px;
 
-<body class="menunggu-mode">
-    <!-- Ornamen Background -->
-    <div class="ambient-orb orb-1"></div>
-    <div class="ambient-orb orb-2"></div>
+    width: 100%;
+    min-height: 100vh;
 
-    <div class="dashboard-wrapper">
-        
-        <!-- Kartu Utama Dashboard -->
-        <div class="card menunggu-theme" id="mainCard">
-            
-            <!-- Header Kartu -->
-            <div class="card-header">
-                <div class="brand-badge">
-                    <div class="status-dot" id="statusDot"></div>
-                    <span id="connectionBadge">Mencari Sinyal...</span>
-                </div>
-                <span style="font-size: 0.85rem; color: #64748b; font-weight: 600; letter-spacing: 1px;">ESP32 SENSOR</span>
-            </div>
+    overflow-x: hidden;
 
-            <!-- Status Peringatan Raksasa di Tengah -->
-            <div class="status-container" id="statusContainer">
-                <div class="ripple-ring" id="rippleEffect"></div>
-                <div class="icon-wrapper" id="statusIcon">⏳</div>
-                <h1 class="status-title" id="statusText">MENUNGGU</h1>
-                <div class="status-subtitle" id="statusSub">Menghubungkan ke sistem...</div>
-            </div>
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
-            <!-- Panel Data dan Kontrol di Bawah (Berjajar 2 Kolom di Desktop) -->
-            <div class="bottom-panel">
-                
-                <!-- Kotak Nilai dB -->
-                <div class="info-box">
-                    <div class="db-info-group">
-                        <span class="box-label">🎙️ Intensitas Suara</span>
-                        <span class="db-subtext">Ambang Batas: 55 dB</span>
-                    </div>
-                    <div class="db-value-container">
-                        <span class="db-value" id="dbValue">--</span>
-                        <span class="db-unit">dB</span>
-                    </div>
-                </div>
+    position: relative;
 
-                <!-- Kotak Kontrol Buzzer -->
-                <div class="info-box">
-                    <div class="db-info-group">
-                        <span class="box-label">🔔 Alarm Buzzer</span>
-                        <span class="db-subtext">Aktifkan peringatan audio</span>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="buzzerToggle" onchange="toggleBuzzer(this.checked)" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
+    background:
+        radial-gradient(
+            circle at 20% 20%,
+            rgba(51, 65, 85, 0.10),
+            transparent 35%
+        ),
+        radial-gradient(
+            circle at 80% 80%,
+            rgba(51, 65, 85, 0.08),
+            transparent 40%
+        ),
+        var(--bg-primary);
 
-            </div>
-        </div>
+    color: var(--text-main);
 
-        <div class="footer-info">
-            NOISE GUARD SYSTEM &bull; REAL-TIME MONITORING
-        </div>
-    </div>
+    transition:
+        background 0.8s ease,
+        color 0.4s ease;
+}
 
-    <script>
-        // Fungsi untuk mengirim perintah ON/OFF Buzzer ke ESP32
-        function toggleBuzzer(isChecked) {
-            fetch(`/buzzer?state=${isChecked ? 'on' : 'off'}`).catch(err => console.log('Network error:', err));
-        }
 
-        // Fungsi menarik data dari ESP32 secara berkala
-        function fetchESP32Data() {
-            fetch('/api/sensor?t=' + Date.now(), { cache: 'no-store' })
-                .then(response => response.json())
-                .then(data => {
-                    // Update Angka dB di bawah
-                    document.getElementById('dbValue').innerText = data.db.toFixed(1);
+/* =========================================================
+   AMBIENT ORBS
+   ========================================================= */
 
-                    const bodyEl = document.body;
-                    const mainCard = document.getElementById('mainCard');
-                    const statusIcon = document.getElementById('statusIcon');
-                    const statusText = document.getElementById('statusText');
-                    const statusSub = document.getElementById('statusSub');
-                    const statusDot = document.getElementById('statusDot');
-                    const connectionBadge = document.getElementById('connectionBadge');
+.ambient-orb {
+    position: fixed;
 
-                    connectionBadge.innerText = "Terhubung";
-                    statusDot.style.backgroundColor = "var(--accent-green)";
+    border-radius: 50%;
 
-                    // Ganti Tema, Teks, Ikon, dan Ornamen Berdasarkan Status dari ESP32
-                    if (data.warning === true) {
-                        mainCard.className = "card berisik-theme berisik-card";
-                        bodyEl.className = "berisik-mode"; // Mengubah warna background orb
-                        statusIcon.innerHTML = "🚨";
-                        statusText.innerHTML = "BAHAYA!";
-                        statusSub.innerText = "LINGKUNGAN TERLALU BISING (>55 dB)";
-                    } else {
-                        mainCard.className = "card aman-theme";
-                        bodyEl.className = "aman-mode"; // Mengubah warna background orb
-                        statusIcon.innerHTML = "🛡️";
-                        statusText.innerHTML = "AMAN";
-                        statusSub.innerText = "Tingkat Suara Normal & Terkendali";
-                    }
+    filter: blur(110px);
 
-                    // Sinkronisasi status tombol saklar di layar dengan alat asli
-                    const toggleBtn = document.getElementById('buzzerToggle');
-                    if (toggleBtn && document.activeElement !== toggleBtn) {
-                        if (data.buzzer !== undefined) {
-                            toggleBtn.checked = data.buzzer;
-                        }
-                    }
-                })
-                .catch(error => {
-                    // Jika ESP32 belum merespons (Offline / Gangguan)
-                    const bodyEl = document.body;
-                    const mainCard = document.getElementById('mainCard');
-                    
-                    mainCard.className = "card menunggu-theme";
-                    bodyEl.className = "menunggu-mode";
-                    
-                    document.getElementById('connectionBadge').innerText = "Menunggu Sinyal...";
-                    document.getElementById('statusDot').style.backgroundColor = "var(--accent-wait)";
-                    document.getElementById('statusIcon').innerHTML = "⏳";
-                    document.getElementById('statusText').innerHTML = "MENUNGGU";
-                    document.getElementById('statusSub').innerText = "Mencari koneksi ke ESP32...";
-                    console.log("Menunggu koneksi...", error);
-                });
-        }
+    pointer-events: none;
 
-        // Jalankan fungsi update otomatis setiap 500ms
-        setInterval(fetchESP32Data, 500);
-        fetchESP32Data();
-    </script>
-</body>
-</html>
+    z-index: 0;
+
+    opacity: 0.28;
+
+    transition:
+        background 1s ease,
+        opacity 1s ease,
+        transform 1s ease;
+}
+
+
+.orb-1 {
+    width: 42vw;
+    height: 42vw;
+
+    top: -16vw;
+    left: -14vw;
+
+    background:
+        rgba(100, 116, 139, 0.55);
+}
+
+
+.orb-2 {
+    width: 48vw;
+    height: 48vw;
+
+    bottom: -20vw;
+    right: -16vw;
+
+    background:
+        rgba(100, 116, 139, 0.35);
+
+    opacity: 0.18;
+}
+
+
+/* =========================================================
+   DASHBOARD WRAPPER
+   ========================================================= */
+
+.dashboard-wrapper {
+    width: 100%;
+    max-width: 1080px;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 22px;
+
+    position: relative;
+
+    z-index: 2;
+}
+
+
+/* =========================================================
+   MAIN CARD
+   ========================================================= */
+
+.card {
+    width: 100%;
+
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    border-radius: 32px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(20, 28, 45, 0.94),
+            rgba(8, 13, 25, 0.97)
+        );
+
+    border:
+        1px solid var(--card-border);
+
+    box-shadow:
+        var(--shadow-main),
+        var(--shadow-inset);
+
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+
+    transition:
+        border-color 0.45s ease,
+        box-shadow 0.45s ease,
+        background 0.45s ease;
+}
+
+
+/* =========================================================
+   CARD HEADER
+   ========================================================= */
+
+.card-header {
+    width: 100%;
+
+    min-height: 84px;
+
+    padding:
+        26px
+        30px
+        12px
+        30px;
+
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    position: relative;
+
+    z-index: 3;
+}
+
+
+/* =========================================================
+   BRAND BADGE
+   ========================================================= */
+
+.brand-badge {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 11px;
+
+    padding:
+        10px
+        16px;
+
+    border-radius: 999px;
+
+    background:
+        rgba(3, 7, 18, 0.60);
+
+    border:
+        1px solid rgba(255, 255, 255, 0.06);
+
+    color: var(--text-muted);
+
+    font-size: 0.90rem;
+
+    font-weight: 700;
+
+    letter-spacing: 0.2px;
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.03);
+}
+
+
+/* =========================================================
+   STATUS DOT
+   ========================================================= */
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+
+    flex: 0 0 12px;
+
+    border-radius: 50%;
+
+    background:
+        var(--accent-wait);
+
+    color:
+        var(--accent-wait);
+
+    box-shadow:
+        0 0 14px currentColor;
+
+    transition:
+        background 0.35s ease,
+        box-shadow 0.35s ease;
+}
+
+
+/* =========================================================
+   STATUS CONTAINER
+   ========================================================= */
+
+.status-container {
+    min-height: 500px;
+
+    width: 100%;
+
+    padding:
+        54px
+        30px
+        76px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-align: center;
+
+    position: relative;
+
+    z-index: 2;
+}
+
+
+/* =========================================================
+   RIPPLE
+   ========================================================= */
+
+.ripple-ring {
+    width: 150px;
+    height: 150px;
+
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    transform:
+        translate(-50%, -50%);
+
+    border:
+        2px solid transparent;
+
+    border-radius: 50%;
+
+    opacity: 0;
+
+    pointer-events: none;
+
+    z-index: 0;
+}
+
+
+/* =========================================================
+   ICON WRAPPER
+   ========================================================= */
+
+.icon-wrapper {
+    width: 150px;
+    height: 150px;
+
+    margin-bottom: 36px;
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    position: relative;
+
+    z-index: 2;
+
+    border-radius: 50%;
+
+    background:
+        rgba(255, 255, 255, 0.025);
+
+    border:
+        2px solid rgba(255, 255, 255, 0.10);
+
+    box-shadow:
+        0 12px 35px rgba(0, 0, 0, 0.35);
+
+    font-size: 4.6rem;
+
+    transition:
+        all 0.45s
+        cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+
+/* =========================================================
+   STATUS TITLE
+   ========================================================= */
+
+.status-title {
+    margin: 0;
+
+    position: relative;
+
+    z-index: 2;
+
+    font-size: clamp(
+        3.8rem,
+        8vw,
+        6rem
+    );
+
+    line-height: 1;
+
+    font-weight: 900;
+
+    letter-spacing: 2px;
+
+    text-align: center;
+
+    color: var(--text-muted);
+
+    text-shadow:
+        0 8px 25px rgba(0, 0, 0, 0.35);
+
+    transition:
+        color 0.4s ease,
+        text-shadow 0.4s ease;
+}
+
+
+/* =========================================================
+   STATUS SUBTITLE
+   ========================================================= */
+
+.status-subtitle {
+    margin-top: 22px;
+
+    position: relative;
+
+    z-index: 2;
+
+    max-width: 850px;
+
+    font-size: 1.25rem;
+
+    line-height: 1.5;
+
+    font-weight: 600;
+
+    letter-spacing: 0.3px;
+
+    color: var(--accent-wait-light);
+
+    text-align: center;
+
+    transition:
+        color 0.4s ease;
+}
+
+
+/* =========================================================
+   WAITING THEME
+   ========================================================= */
+
+.menunggu-theme {
+    border-color:
+        rgba(100, 116, 139, 0.30);
+}
+
+
+.menunggu-theme .status-title {
+    color:
+        var(--accent-wait-light);
+
+    text-shadow:
+        0 8px 30px rgba(0, 0, 0, 0.45);
+}
+
+
+.menunggu-theme .status-subtitle {
+    color:
+        #718096;
+}
+
+
+.menunggu-theme .icon-wrapper {
+    color:
+        var(--accent-wait-light);
+
+    background:
+        rgba(100, 116, 139, 0.08);
+
+    border-color:
+        rgba(148, 163, 184, 0.18);
+}
+
+
+/* =========================================================
+   BODY WAITING
+   ========================================================= */
+
+body.menunggu-mode {
+    background:
+        radial-gradient(
+            circle at 20% 15%,
+            rgba(71, 85, 105, 0.16),
+            transparent 34%
+        ),
+        radial-gradient(
+            circle at 84% 84%,
+            rgba(30, 41, 59, 0.12),
+            transparent 40%
+        ),
+        #050810;
+}
+
+
+/* =========================================================
+   SAFE THEME
+   ========================================================= */
+
+.aman-theme {
+    border-color:
+        rgba(16, 185, 129, 0.35);
+
+    box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.45),
+        0 0 45px rgba(16, 185, 129, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+
+.aman-theme .status-title {
+    color:
+        var(--accent-green);
+
+    text-shadow:
+        0 0 32px
+        rgba(16, 185, 129, 0.28);
+}
+
+
+.aman-theme .status-subtitle {
+    color:
+        var(--accent-green-light);
+}
+
+
+.aman-theme .icon-wrapper {
+    color:
+        var(--accent-green);
+
+    background:
+        rgba(16, 185, 129, 0.075);
+
+    border-color:
+        rgba(16, 185, 129, 0.35);
+
+    box-shadow:
+        0 0 46px
+        rgba(16, 185, 129, 0.16);
+}
+
+
+/* =========================================================
+   BODY SAFE
+   ========================================================= */
+
+body.aman-mode {
+    background:
+        radial-gradient(
+            circle at 20% 15%,
+            rgba(16, 185, 129, 0.09),
+            transparent 34%
+        ),
+        radial-gradient(
+            circle at 84% 84%,
+            rgba(5, 150, 105, 0.06),
+            transparent 40%
+        ),
+        #050810;
+}
+
+
+/* =========================================================
+   DANGER THEME
+   ========================================================= */
+
+.berisik-theme {
+    border-color:
+        rgba(239, 68, 68, 0.42);
+}
+
+
+.berisik-card {
+    border-color:
+        rgba(239, 68, 68, 0.52) !important;
+
+    box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.48),
+        0 0 55px rgba(239, 68, 68, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+
+.berisik-theme .status-title {
+    color:
+        var(--accent-red);
+
+    text-shadow:
+        0 0 38px
+        rgba(239, 68, 68, 0.38);
+}
+
+
+.berisik-theme .status-subtitle {
+    color:
+        var(--accent-red-light);
+
+    font-weight: 800;
+}
+
+
+.berisik-theme .icon-wrapper {
+    color:
+        var(--accent-red);
+
+    background:
+        rgba(239, 68, 68, 0.10);
+
+    border-color:
+        rgba(239, 68, 68, 0.45);
+
+    box-shadow:
+        0 0 55px
+        rgba(239, 68, 68, 0.22);
+
+    animation:
+        pulse-icon
+        1s
+        ease-in-out
+        infinite
+        alternate;
+}
+
+
+.berisik-theme .ripple-ring {
+    border-color:
+        rgba(239, 68, 68, 0.55);
+
+    animation:
+        ripple-effect
+        1.5s
+        linear
+        infinite;
+}
+
+
+/* =========================================================
+   BODY DANGER
+   ========================================================= */
+
+body.berisik-mode {
+    background:
+        radial-gradient(
+            circle at 20% 15%,
+            rgba(239, 68, 68, 0.10),
+            transparent 34%
+        ),
+        radial-gradient(
+            circle at 84% 84%,
+            rgba(185, 28, 28, 0.07),
+            transparent 40%
+        ),
+        #050810;
+}
+
+
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
+
+@keyframes pulse-icon {
+
+    0% {
+        transform:
+            scale(1);
+    }
+
+    100% {
+        transform:
+            scale(1.12);
+    }
+}
+
+
+@keyframes ripple-effect {
+
+    0% {
+        transform:
+            translate(-50%, -50%)
+            scale(0.75);
+
+        opacity: 0.70;
+    }
+
+    100% {
+        transform:
+            translate(-50%, -50%)
+            scale(2.35);
+
+        opacity: 0;
+    }
+}
+
+
+/* =========================================================
+   BOTTOM PANEL
+   ========================================================= */
+
+.bottom-panel {
+    width: 100%;
+
+    padding:
+        30px;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 30px;
+
+    position: relative;
+
+    z-index: 2;
+
+    background:
+        rgba(0, 0, 0, 0.19);
+
+    border-top:
+        1px solid
+        rgba(255, 255, 255, 0.08);
+}
+
+
+/* =========================================================
+   INFO BOX
+   ========================================================= */
+
+.info-box {
+    min-height: 132px;
+
+    padding:
+        25px 28px;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 20px;
+
+    border-radius: 24px;
+
+    background:
+        rgba(255, 255, 255, 0.025);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.07);
+
+    box-shadow:
+        inset 0 1px 0
+        rgba(255, 255, 255, 0.025);
+
+    transition:
+        background 0.3s ease,
+        border-color 0.3s ease,
+        transform 0.3s ease;
+}
+
+
+.info-box:hover {
+    background:
+        rgba(255, 255, 255, 0.042);
+
+    border-color:
+        rgba(255, 255, 255, 0.10);
+
+    transform:
+        translateY(-2px);
+}
+
+
+/* =========================================================
+   DB INFO GROUP
+   ========================================================= */
+
+.db-info-group {
+    min-width: 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    gap: 6px;
+}
+
+
+/* =========================================================
+   LABEL
+   ========================================================= */
+
+.box-label {
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    color:
+        var(--text-muted);
+
+    font-size:
+        0.95rem;
+
+    font-weight:
+        800;
+
+    text-transform:
+        uppercase;
+
+    letter-spacing:
+        1px;
+}
+
+
+/* =========================================================
+   SUBTEXT
+   ========================================================= */
+
+.db-subtext {
+    color:
+        #64748b;
+
+    font-size:
+        0.85rem;
+
+    line-height:
+        1.4;
+
+    font-weight:
+        500;
+}
+
+
+/* =========================================================
+   DB VALUE CONTAINER
+   ========================================================= */
+
+.db-value-container {
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: baseline;
+
+    gap: 8px;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   DB VALUE
+   ========================================================= */
+
+.db-value {
+    color:
+        var(--text-main);
+
+    font-size:
+        clamp(2.4rem, 5vw, 4rem);
+
+    font-weight:
+        900;
+
+    line-height:
+        1;
+
+    letter-spacing:
+        -1px;
+
+    text-shadow:
+        0 6px 16px
+        rgba(0, 0, 0, 0.30);
+
+    transition:
+        color 0.35s ease,
+        text-shadow 0.35s ease;
+}
+
+
+/* =========================================================
+   DB UNIT
+   ========================================================= */
+
+.db-unit {
+    color:
+        var(--text-muted);
+
+    font-size:
+        1.25rem;
+
+    font-weight:
+        700;
+}
+
+
+/* =========================================================
+   TOGGLE SWITCH
+   ========================================================= */
+
+.switch {
+    width: 76px;
+    height: 40px;
+
+    display: inline-block;
+
+    position: relative;
+
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   HIDE CHECKBOX
+   ========================================================= */
+
+.switch input {
+    width: 0;
+    height: 0;
+
+    opacity: 0;
+
+    position: absolute;
+}
+
+
+/* =========================================================
+   SLIDER
+   ========================================================= */
+
+.slider {
+    position: absolute;
+
+    inset: 0;
+
+    cursor: pointer;
+
+    border-radius: 999px;
+
+    background:
+        #334155;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.08);
+
+    box-shadow:
+        inset 0 2px 7px
+        rgba(0, 0, 0, 0.35);
+
+    transition:
+        background 0.35s ease,
+        box-shadow 0.35s ease,
+        opacity 0.35s ease;
+}
+
+
+/* =========================================================
+   SLIDER CIRCLE
+   ========================================================= */
+
+.slider::before {
+    content: "";
+
+    width: 30px;
+    height: 30px;
+
+    position: absolute;
+
+    left: 4px;
+    bottom: 4px;
+
+    border-radius: 50%;
+
+    background:
+        #ffffff;
+
+    box-shadow:
+        0 4px 10px
+        rgba(0, 0, 0, 0.35);
+
+    transition:
+        transform 0.35s
+        cubic-bezier(
+            0.4,
+            0,
+            0.2,
+            1
+        );
+}
+
+
+/* =========================================================
+   TOGGLE ON
+   ========================================================= */
+
+.switch input:checked + .slider {
+    background:
+        var(--accent-green);
+
+    box-shadow:
+        0 0 18px
+        rgba(16, 185, 129, 0.30);
+}
+
+
+.switch input:checked + .slider::before {
+    transform:
+        translateX(36px);
+}
+
+
+/* =========================================================
+   TOGGLE FOCUS
+   ========================================================= */
+
+.switch input:focus-visible + .slider {
+    outline:
+        2px solid
+        rgba(148, 163, 184, 0.55);
+
+    outline-offset:
+        3px;
+}
+
+
+/* =========================================================
+   TOGGLE DISABLED
+   ========================================================= */
+
+.switch input:disabled + .slider {
+    cursor:
+        not-allowed;
+
+    opacity:
+        0.55;
+
+    background:
+        #1e293b;
+
+    box-shadow:
+        inset 0 2px 7px
+        rgba(0, 0, 0, 0.35);
+}
+
+
+.switch input:disabled + .slider::before {
+    background:
+        #cbd5e1;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.footer-info {
+    width: 100%;
+
+    padding:
+        0 10px 4px;
+
+    text-align: center;
+
+    color:
+        #475569;
+
+    font-size:
+        0.78rem;
+
+    font-weight:
+        600;
+
+    letter-spacing:
+        0.8px;
+
+    text-transform:
+        uppercase;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 767px) {
+
+    body {
+        padding:
+            12px;
+    }
+
+
+    .dashboard-wrapper {
+        max-width:
+            100%;
+    }
+
+
+    .card {
+        border-radius:
+            24px;
+    }
+
+
+    .card-header {
+        min-height:
+            72px;
+
+        padding:
+            20px
+            18px
+            8px
+            18px;
+    }
+
+
+    .brand-badge {
+        padding:
+            8px
+            12px;
+
+        font-size:
+            0.78rem;
+    }
+
+
+    .status-container {
+        min-height:
+            420px;
+
+        padding:
+            38px
+            18px
+            52px;
+    }
+
+
+    .icon-wrapper {
+        width:
+            110px;
+
+        height:
+            110px;
+
+        margin-bottom:
+            26px;
+
+        font-size:
+            3.4rem;
+    }
+
+
+    .status-title {
+        font-size:
+            clamp(
+                2.8rem,
+                15vw,
+                4.4rem
+            );
+
+        letter-spacing:
+            1px;
+    }
+
+
+    .status-subtitle {
+        max-width:
+            95%;
+
+        margin-top:
+            16px;
+
+        font-size:
+            1rem;
+    }
+
+
+    .ripple-ring {
+        width:
+            110px;
+
+        height:
+            110px;
+    }
+
+
+    .bottom-panel {
+        padding:
+            18px;
+
+        grid-template-columns:
+            1fr;
+
+        gap:
+            15px;
+    }
+
+
+    .info-box {
+        min-height:
+            108px;
+
+        padding:
+            20px;
+
+        border-radius:
+            20px;
+    }
+
+
+    .box-label {
+        font-size:
+            0.78rem;
+
+        letter-spacing:
+            0.8px;
+    }
+
+
+    .db-subtext {
+        font-size:
+            0.74rem;
+    }
+
+
+    .db-value {
+        font-size:
+            2.6rem;
+    }
+
+
+    .db-unit {
+        font-size:
+            1rem;
+    }
+
+
+    .switch {
+        width:
+            66px;
+
+        height:
+            36px;
+    }
+
+
+    .slider::before {
+        width:
+            28px;
+
+        height:
+            28px;
+
+        left:
+            3px;
+
+        bottom:
+            3px;
+    }
+
+
+    .switch input:checked + .slider::before {
+        transform:
+            translateX(30px);
+    }
+
+
+    .footer-info {
+        font-size:
+            0.68rem;
+
+        letter-spacing:
+            0.5px;
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 420px) {
+
+    .card-header {
+        align-items:
+            flex-start;
+
+        gap:
+            12px;
+    }
+
+
+    .card-header > span {
+        font-size:
+            0.70rem !important;
+
+        letter-spacing:
+            0.7px !important;
+    }
+
+
+    .status-container {
+        min-height:
+            370px;
+    }
+
+
+    .info-box {
+        gap:
+            12px;
+    }
+
+
+    .db-value {
+        font-size:
+            2.25rem;
+    }
+}
+
+
+/* =========================================================
+   LARGE SCREEN
+   ========================================================= */
+
+@media (min-width: 1200px) {
+
+    .status-container {
+        min-height:
+            545px;
+    }
+
+
+    .icon-wrapper {
+        width:
+            155px;
+
+        height:
+            155px;
+
+        font-size:
+            4.8rem;
+    }
+
+
+    .status-title {
+        font-size:
+            6rem;
+    }
+
+
+    .status-subtitle {
+        font-size:
+            1.35rem;
+    }
+}
