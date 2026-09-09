@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Peringatan Kebisingan & Sound Level Meter</title>
+
     <!-- CSS eksternal -->
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body class="menunggu-mode" id="body">
 
     <!-- =====================================================
@@ -14,6 +18,7 @@
     ====================================================== -->
     <div class="ambient-orb orb-1"></div>
     <div class="ambient-orb orb-2"></div>
+
 
     <!-- =====================================================
          DASHBOARD
@@ -29,24 +34,73 @@
                  HEADER
             ================================================== -->
             <div class="card-header">
+
                 <div class="brand-badge">
-                    <div class="status-dot" id="statusDot"></div>
-                    <span id="connectionBadge">Menunggu Sinyal...</span>
+
+                    <div
+                        class="status-dot"
+                        id="statusDot"
+                    ></div>
+
+                    <span id="connectionBadge">
+                        Menunggu Sinyal...
+                    </span>
+
                 </div>
-                <span style="font-size: 0.85rem; color: #64748b; font-weight: 600; letter-spacing: 1px;">
+
+                <span
+                    style="
+                        font-size: 0.85rem;
+                        color: #64748b;
+                        font-weight: 600;
+                        letter-spacing: 1px;
+                    "
+                >
                     ESP32 SENSOR
                 </span>
+
             </div>
+
 
             <!-- =================================================
                  STATUS UTAMA
             ================================================== -->
-            <div class="status-container" id="statusContainer">
-                <div class="ripple-ring" id="rippleEffect"></div>
-                <div class="icon-wrapper" id="statusIcon">⏳</div>
-                <h1 class="status-title" id="statusText">MENUNGGU</h1>
-                <div class="status-subtitle" id="statusSub">Menghubungkan ke ESP32...</div>
+            <div
+                class="status-container"
+                id="statusContainer"
+            >
+
+                <div
+                    class="ripple-ring"
+                    id="rippleEffect"
+                ></div>
+
+
+                <div
+                    class="icon-wrapper"
+                    id="statusIcon"
+                >
+                    ⏳
+                </div>
+
+
+                <h1
+                    class="status-title"
+                    id="statusText"
+                >
+                    MENUNGGU
+                </h1>
+
+
+                <div
+                    class="status-subtitle"
+                    id="statusSub"
+                >
+                    Menghubungkan ke ESP32...
+                </div>
+
             </div>
+
 
             <!-- =================================================
                  PANEL DATA
@@ -57,32 +111,75 @@
                      NILAI dB
                 ================================================== -->
                 <div class="info-box">
+
                     <div class="db-info-group">
-                        <span class="box-label">🎙️ Intensitas Suara</span>
-                        <span class="db-subtext">Ambang Batas: 55 dB</span>
+
+                        <span class="box-label">
+                            🎙️ Intensitas Suara
+                        </span>
+
+                        <span class="db-subtext">
+                            Ambang Batas: 55 dB
+                        </span>
+
                     </div>
+
+
                     <div class="db-value-container">
-                        <span class="db-value" id="dbValue">0.0</span>
-                        <span class="db-unit">dB</span>
+
+                        <span
+                            class="db-value"
+                            id="dbValue"
+                        >
+                            0.0
+                        </span>
+
+                        <span class="db-unit">
+                            dB
+                        </span>
+
                     </div>
+
                 </div>
+
 
                 <!-- =================================================
                      BUZZER
                 ================================================== -->
                 <div class="info-box">
+
                     <div class="db-info-group">
-                        <span class="box-label">🔔 Alarm Buzzer</span>
-                        <span class="db-subtext">Aktifkan peringatan audio</span>
+
+                        <span class="box-label">
+                            🔔 Alarm Buzzer
+                        </span>
+
+                        <span class="db-subtext">
+                            Aktifkan peringatan audio
+                        </span>
+
                     </div>
+
+
                     <label class="switch">
-                        <input type="checkbox" id="buzzerToggle" onchange="toggleBuzzer(this.checked)" checked>
+
+                        <input
+                            type="checkbox"
+                            id="buzzerToggle"
+                            onchange="toggleBuzzer(this.checked)"
+                            checked
+                        >
+
                         <span class="slider"></span>
+
                     </label>
+
                 </div>
 
             </div>
+
         </div>
+
 
         <!-- =================================================
              FOOTER
@@ -93,198 +190,452 @@
 
     </div>
 
+
     <!-- =====================================================
          JAVASCRIPT
     ====================================================== -->
     <script>
+
         // =====================================================
         // POLLING WEBSITE KE WORKER
         // =====================================================
         const POLLING_INTERVAL = 500;
 
+
         // =====================================================
         // ELEMENT DASHBOARD
         // =====================================================
-        const mainCard = document.getElementById("mainCard");
-        const statusIcon = document.getElementById("statusIcon");
-        const statusText = document.getElementById("statusText");
-        const statusSub = document.getElementById("statusSub");
-        const statusDot = document.getElementById("statusDot");
-        const connectionBadge = document.getElementById("connectionBadge");
-        const dbValue = document.getElementById("dbValue");
-        const buzzerToggle = document.getElementById("buzzerToggle");
+        const mainCard =
+            document.getElementById("mainCard");
+
+        const statusIcon =
+            document.getElementById("statusIcon");
+
+        const statusText =
+            document.getElementById("statusText");
+
+        const statusSub =
+            document.getElementById("statusSub");
+
+        const statusDot =
+            document.getElementById("statusDot");
+
+        const connectionBadge =
+            document.getElementById("connectionBadge");
+
+        const dbValue =
+            document.getElementById("dbValue");
+
+        const buzzerToggle =
+            document.getElementById("buzzerToggle");
+
 
         // =====================================================
         // FUNGSI ESP32 OFFLINE
         // =====================================================
         function showESP32Offline() {
+
+            // -----------------------------------------------
             // Tema menunggu
-            mainCard.className = "card menunggu-theme";
-            document.body.className = "menunggu-mode";
+            // -----------------------------------------------
+            mainCard.className =
+                "card menunggu-theme";
 
+            document.body.className =
+                "menunggu-mode";
+
+
+            // -----------------------------------------------
             // Status koneksi
-            connectionBadge.innerText = "OFFLINE";
-            statusDot.style.backgroundColor = "var(--accent-wait)";
+            // -----------------------------------------------
+            connectionBadge.innerText =
+                "OFFLINE";
 
+            statusDot.style.backgroundColor =
+                "var(--accent-wait)";
+
+
+            // -----------------------------------------------
             // Status utama
-            statusIcon.innerHTML = "⏳";
-            statusText.innerHTML = "MENUNGGU";
-            statusSub.innerText = "Menunggu menghubungkan ESP32...";
+            // -----------------------------------------------
+            statusIcon.innerHTML =
+                "⏳";
 
+            statusText.innerHTML =
+                "MENUNGGU";
+
+            statusSub.innerText =
+                "Menunggu menghubungkan ESP32...";
+
+
+            // -----------------------------------------------
             // Nilai dB
-            dbValue.innerText = "0.0";
+            // -----------------------------------------------
+            dbValue.innerText =
+                "0.0";
 
+
+            // -----------------------------------------------
             // Buzzer
-            buzzerToggle.checked = false;
-            buzzerToggle.disabled = true;
+            // -----------------------------------------------
+            buzzerToggle.checked =
+                false;
+
+            buzzerToggle.disabled =
+                true;
         }
+
 
         // =====================================================
         // FUNGSI ESP32 ONLINE - AMAN
         // =====================================================
         function showSafeStatus(data) {
+
+            // -----------------------------------------------
             // Tema aman
-            mainCard.className = "card aman-theme";
-            document.body.className = "aman-mode";
+            // -----------------------------------------------
+            mainCard.className =
+                "card aman-theme";
 
+            document.body.className =
+                "aman-mode";
+
+
+            // -----------------------------------------------
             // Status koneksi
-            connectionBadge.innerText = "TERHUBUNG";
-            statusDot.style.backgroundColor = "var(--accent-green)";
+            // -----------------------------------------------
+            connectionBadge.innerText =
+                "TERHUBUNG";
 
-            // Icon & Status
-            statusIcon.innerHTML = "🛡️";
-            statusText.innerHTML = "AMAN";
-            statusSub.innerText = "Tingkat Suara Normal & Terkendali";
+            statusDot.style.backgroundColor =
+                "var(--accent-green)";
 
+
+            // -----------------------------------------------
+            // Icon
+            // -----------------------------------------------
+            statusIcon.innerHTML =
+                "🛡️";
+
+
+            // -----------------------------------------------
+            // Status
+            // -----------------------------------------------
+            statusText.innerHTML =
+                "AMAN";
+
+            statusSub.innerText =
+                "Tingkat Suara Normal & Terkendali";
+
+
+            // -----------------------------------------------
             // Nilai dB
-            const db = Number(data.db);
-            if (Number.isFinite(db)) {
-                dbValue.innerText = db.toFixed(1);
+            // -----------------------------------------------
+            const db =
+                Number(data.db);
+
+            if (
+                Number.isFinite(db)
+            ) {
+
+                dbValue.innerText =
+                    db.toFixed(1);
+
             } else {
-                dbValue.innerText = "0.0";
+
+                dbValue.innerText =
+                    "0.0";
             }
         }
+
 
         // =====================================================
         // FUNGSI ESP32 ONLINE - BAHAYA
         // =====================================================
         function showDangerStatus(data) {
+
+            // -----------------------------------------------
             // Tema berisik
-            mainCard.className = "card berisik-theme berisik-card";
-            document.body.className = "berisik-mode";
+            // -----------------------------------------------
+            mainCard.className =
+                "card berisik-theme berisik-card";
 
+            document.body.className =
+                "berisik-mode";
+
+
+            // -----------------------------------------------
             // Status koneksi
-            connectionBadge.innerText = "TERHUBUNG";
-            statusDot.style.backgroundColor = "var(--accent-green)";
+            // -----------------------------------------------
+            connectionBadge.innerText =
+                "TERHUBUNG";
 
-            // Icon & Status
-            statusIcon.innerHTML = "🚨";
-            statusText.innerHTML = "BAHAYA!";
-            statusSub.innerText = "LINGKUNGAN TERLALU BISING (>55 dB)";
+            statusDot.style.backgroundColor =
+                "var(--accent-green)";
 
+
+            // -----------------------------------------------
+            // Icon
+            // -----------------------------------------------
+            statusIcon.innerHTML =
+                "🚨";
+
+
+            // -----------------------------------------------
+            // Status
+            // -----------------------------------------------
+            statusText.innerHTML =
+                "BAHAYA!";
+
+            statusSub.innerText =
+                "LINGKUNGAN TERLALU BISING (>55 dB)";
+
+
+            // -----------------------------------------------
             // Nilai dB
-            const db = Number(data.db);
-            if (Number.isFinite(db)) {
-                dbValue.innerText = db.toFixed(1);
+            // -----------------------------------------------
+            const db =
+                Number(data.db);
+
+            if (
+                Number.isFinite(db)
+            ) {
+
+                dbValue.innerText =
+                    db.toFixed(1);
+
             } else {
-                dbValue.innerText = "0.0";
+
+                dbValue.innerText =
+                    "0.0";
             }
         }
+
 
         // =====================================================
         // SINKRONISASI STATUS BUZZER
         // =====================================================
         function updateBuzzerState(data) {
-            if (!buzzerToggle) return;
+
+            if (!buzzerToggle) {
+                return;
+            }
+
 
             // ESP32 online
-            buzzerToggle.disabled = false;
+            buzzerToggle.disabled =
+                false;
 
-            // Jangan mengubah toggle ketika sedang digunakan oleh user
-            if (document.activeElement !== buzzerToggle) {
-                if (data.buzzer !== undefined) {
-                    buzzerToggle.checked = Boolean(data.buzzer);
+
+            // Jangan mengubah toggle ketika sedang
+            // digunakan oleh user
+            if (
+                document.activeElement !==
+                buzzerToggle
+            ) {
+
+                if (
+                    data.buzzer !== undefined
+                ) {
+
+                    buzzerToggle.checked =
+                        Boolean(data.buzzer);
                 }
             }
         }
+
 
         // =====================================================
         // KIRIM PERINTAH BUZZER
         // =====================================================
         async function toggleBuzzer(isChecked) {
+
             try {
-                const response = await fetch(`/buzzer?state=${isChecked ? "on" : "off"}`);
+
+                const response =
+                    await fetch(
+                        `/buzzer?state=${isChecked ? "on" : "off"}`
+                    );
+
+
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
+
+                    throw new Error(
+                        `HTTP ${response.status}`
+                    );
                 }
-                const result = await response.json();
-                console.log("[BUZZER] Response:", result);
-            } catch (error) {
-                console.error("[BUZZER] Gagal mengubah status:", error);
+
+
+                const result =
+                    await response.json();
+
+
+                console.log(
+                    "[BUZZER] Response:",
+                    result
+                );
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "[BUZZER] Gagal mengubah status:",
+                    error
+                );
             }
         }
+
 
         // =====================================================
         // AMBIL DATA ESP32
         // =====================================================
         async function fetchESP32Data() {
-            try {
-                // Request ke Cloudflare Worker
-                const response = await fetch("/api/sensor?t=" + Date.now(), {
-                    cache: "no-store"
-                });
 
+            try {
+
+                // -------------------------------------------------
+                // Request ke Cloudflare Worker
+                // -------------------------------------------------
+                const response =
+                    await fetch(
+                        "/api/sensor?t=" +
+                        Date.now(),
+                        {
+                            cache: "no-store"
+                        }
+                    );
+
+
+                // -------------------------------------------------
                 // Cek HTTP
+                // -------------------------------------------------
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
+
+                    throw new Error(
+                        `HTTP ${response.status}`
+                    );
                 }
 
-                // Baca JSON
-                const data = await response.json();
-                console.log("[SENSOR]", data);
 
+                // -------------------------------------------------
+                // Baca JSON
+                // -------------------------------------------------
+                const data =
+                    await response.json();
+
+
+                console.log(
+                    "[SENSOR]",
+                    data
+                );
+
+
+                // =================================================
                 // CEK STATUS ESP32
-                if (data.online !== true) {
+                // =================================================
+                if (
+                    data.online !== true
+                ) {
+
                     showESP32Offline();
+
                     return;
                 }
 
+
+                // =================================================
                 // ESP32 ONLINE
-                if (data.warning === true) {
-                    showDangerStatus(data);
-                } else {
-                    showSafeStatus(data);
+                // =================================================
+                if (
+                    data.warning === true
+                ) {
+
+                    showDangerStatus(
+                        data
+                    );
+
                 }
 
+                else {
+
+                    showSafeStatus(
+                        data
+                    );
+                }
+
+
+                // =================================================
                 // UPDATE BUZZER
-                updateBuzzerState(data);
+                // =================================================
+                updateBuzzerState(
+                    data
+                );
 
-            } catch (error) {
+            }
+
+            catch (error) {
+
+                // =================================================
                 // SERVER / WORKER TIDAK BISA DIAKSES
+                // =================================================
+                //
                 // Kondisi ini berbeda dengan ESP32 offline.
-                mainCard.className = "card menunggu-theme";
-                document.body.className = "menunggu-mode";
+                //
 
-                connectionBadge.innerText = "SERVER OFFLINE";
-                statusDot.style.backgroundColor = "var(--accent-wait)";
+                mainCard.className =
+                    "card menunggu-theme";
 
-                statusIcon.innerHTML = "⚠️";
-                statusText.innerHTML = "KONEKSI TERPUTUS";
-                statusSub.innerText = "Tidak dapat menghubungi Cloudflare Worker...";
+                document.body.className =
+                    "menunggu-mode";
 
-                dbValue.innerText = "0.0";
 
-                buzzerToggle.checked = false;
-                buzzerToggle.disabled = true;
+                connectionBadge.innerText =
+                    "SERVER OFFLINE";
 
-                console.error("[SERVER ERROR]", error);
+                statusDot.style.backgroundColor =
+                    "var(--accent-wait)";
+
+
+                statusIcon.innerHTML =
+                    "⚠️";
+
+
+                statusText.innerHTML =
+                    "KONEKSI TERPUTUS";
+
+
+                statusSub.innerText =
+                    "Tidak dapat menghubungi Cloudflare Worker...";
+
+
+                dbValue.innerText =
+                    "0.0";
+
+
+                buzzerToggle.checked =
+                    false;
+
+                buzzerToggle.disabled =
+                    true;
+
+
+                console.error(
+                    "[SERVER ERROR]",
+                    error
+                );
             }
         }
+
 
         // =====================================================
         // UPDATE SETIAP 500 ms
         // =====================================================
-        setInterval(fetchESP32Data, POLLING_INTERVAL);
+        setInterval(
+            fetchESP32Data,
+            POLLING_INTERVAL
+        );
+
 
         // =====================================================
         // REQUEST PERTAMA
@@ -292,8 +643,7 @@
         fetchESP32Data();
 
     </script>
-</body>
-</html>
-```eof
 
-Sekarang format kode ini sudah rapi. Struktur tag HTML dan blok-blok di dalam JavaScript jauh lebih enak dibaca dan dipahami. Semua logika tetap 100% sama!
+</body>
+
+</html>
