@@ -476,46 +476,8 @@ body {
    ========================================================= */
 
 .menunggu-theme {
-    position: relative;
-
     border-color:
         rgba(100, 116, 139, 0.30);
-
-    background:
-        rgba(8, 20, 38, 0.72);
-
-    overflow: hidden;
-}
-
-/* BACKGROUND TIMBANGAN HUKUM */
-.menunggu-theme::before {
-    content: "";
-
-    position: absolute;
-    inset: 0;
-
-    background-image:
-        linear-gradient(
-            rgba(7, 18, 35, 0.68),
-            rgba(7, 18, 35, 0.82)
-        ),
-        url("background-hukum.jpg");
-
-    background-position: center center;
-    background-size: cover;
-    background-repeat: no-repeat;
-
-    opacity: 1;
-
-    z-index: 0;
-
-    pointer-events: none;
-}
-
-/* SEMUA ISI DASHBOARD DI ATAS BACKGROUND */
-.menunggu-theme > * {
-    position: relative;
-    z-index: 2;
 }
 
 
@@ -552,6 +514,16 @@ body {
 
 body.menunggu-mode {
     background:
+        radial-gradient(
+            circle at 20% 15%,
+            rgba(71, 85, 105, 0.16),
+            transparent 34%
+        ),
+        radial-gradient(
+            circle at 84% 84%,
+            rgba(30, 41, 59, 0.12),
+            transparent 40%
+        ),
         #050810;
 }
 
