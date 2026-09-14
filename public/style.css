@@ -513,18 +513,49 @@ body {
    ========================================================= */
 
 body.menunggu-mode {
+    position: relative;
+    background: #081426;
+    color: #dce5f2;
+    overflow-x: hidden;
+}
+
+/* GAMBAR TIMBANGAN SEBAGAI BACKGROUND */
+body.menunggu-mode::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+
+    background-image:
+        linear-gradient(
+            rgba(7, 18, 35, 0.78),
+            rgba(7, 18, 35, 0.88)
+        ),
+        url("background-hukum.jpg");
+
+    background-position: center center;
+    background-size: cover;
+    background-repeat: no-repeat;
+
+    opacity: 1;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* OVERLAY TAMBAHAN AGAR BACKGROUND LEBIH HALUS */
+body.menunggu-mode::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+
     background:
         radial-gradient(
-            circle at 20% 15%,
-            rgba(71, 85, 105, 0.16),
-            transparent 34%
-        ),
-        radial-gradient(
-            circle at 84% 84%,
-            rgba(30, 41, 59, 0.12),
-            transparent 40%
-        ),
-        #050810;
+            circle at center,
+            rgba(25, 55, 90, 0.12),
+            rgba(3, 10, 20, 0.42)
+        );
+
+    z-index: 0;
+    pointer-events: none;
 }
 
 
