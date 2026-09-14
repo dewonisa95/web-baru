@@ -476,8 +476,46 @@ body {
    ========================================================= */
 
 .menunggu-theme {
+    position: relative;
+
     border-color:
         rgba(100, 116, 139, 0.30);
+
+    background:
+        rgba(8, 20, 38, 0.72);
+
+    overflow: hidden;
+}
+
+/* BACKGROUND TIMBANGAN HUKUM */
+.menunggu-theme::before {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    background-image:
+        linear-gradient(
+            rgba(7, 18, 35, 0.68),
+            rgba(7, 18, 35, 0.82)
+        ),
+        url("background-hukum.jpg");
+
+    background-position: center center;
+    background-size: cover;
+    background-repeat: no-repeat;
+
+    opacity: 1;
+
+    z-index: 0;
+
+    pointer-events: none;
+}
+
+/* SEMUA ISI DASHBOARD DI ATAS BACKGROUND */
+.menunggu-theme > * {
+    position: relative;
+    z-index: 2;
 }
 
 
@@ -513,49 +551,8 @@ body {
    ========================================================= */
 
 body.menunggu-mode {
-    position: relative;
-    background: #081426;
-    color: #dce5f2;
-    overflow-x: hidden;
-}
-
-/* GAMBAR TIMBANGAN SEBAGAI BACKGROUND */
-body.menunggu-mode::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-
-    background-image:
-        linear-gradient(
-            rgba(7, 18, 35, 0.78),
-            rgba(7, 18, 35, 0.88)
-        ),
-        url("background-hukum.jpg");
-
-    background-position: center center;
-    background-size: cover;
-    background-repeat: no-repeat;
-
-    opacity: 1;
-    z-index: 0;
-    pointer-events: none;
-}
-
-/* OVERLAY TAMBAHAN AGAR BACKGROUND LEBIH HALUS */
-body.menunggu-mode::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-
     background:
-        radial-gradient(
-            circle at center,
-            rgba(25, 55, 90, 0.12),
-            rgba(3, 10, 20, 0.42)
-        );
-
-    z-index: 0;
-    pointer-events: none;
+        #050810;
 }
 
 
